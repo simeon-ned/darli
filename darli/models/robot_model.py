@@ -1,14 +1,28 @@
-from symbotics.models.backend import KinDynBackend
-from symbotics.models.body import Body
-from symbotics.models.state_space import StateSpace
+from dataclasses import dataclass
+from darli.models.backend import KinDynBackend
+from darli.models.state_space import StateSpace
+from darli.models.body import Body
 import casadi as cs
 import numpy as np
-from symbotics.utils import RecursiveNamespace
 
 # TODO:
 # Add mapping between v and v
-# Rename v to v, and dv to 
 # Add disable gravity feature
+
+
+@dataclass
+class CoM:
+    position: cs.Function
+    velocity: cs.Function
+    acceleration: cs.Function
+    jacobian: cs.Function
+    jacobian_dt: cs.Function
+
+
+@dataclass
+class Energy:
+    kinetic: cs.Function
+    potential: cs.Function
 
 
 class RobotModel:
@@ -53,7 +67,7 @@ class RobotModel:
         self._dv = self._model._dv  # cs.SX.sym('dv', self.nv)
         self._tau = self._model._tau  # cs.SX.sym('tau', self.nv)
 
-        self.bodies = set()
+        self.bodies = dict()
         self.add_bodies(bodies_names, calculate=False)
 
         self.set_selector(selector_matrix, calculate=False)
@@ -62,32 +76,6 @@ class RobotModel:
             self.joint_map[joint_name] = self._model.joint_iq(joint_name)
 
         self.mass = self._model.mass
-
-        # structures for general attributes
-        self._general_struct = {
-            "com": {
-                "position": None,
-                "velocity": None,
-                "acceleration": None,
-                "jacobian": None,
-            },
-            "energy": {"kinetic": None, "potential": None},
-            # "state_space": {
-            #     "state": self._state,
-            #     "state_jacobian": None,
-            #     "input_jacobian": None,
-            #     "state_derivative": None,
-            # },
-        }
-
-        # mappings
-        # self._frame_mapping = {'local': cas_kin_dyn.CasadiKinDyn.LOCAL,
-        #                        'world': cas_kin_dyn.CasadiKinDyn.WORLD,
-        #                        'world_aligned': cas_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED}
-
-        # self.frame_types = self._frame_mapping.keys()
-
-        # self._frames_struct = dict(zip(self._frame_mapping.keys(), 3*[None]))
 
         self.forward_dynamics = None
         self.inverse_dynamics = None
@@ -100,10 +88,12 @@ class RobotModel:
         self.contact_qforce = None
         self.coriolis_matrix = None
 
-        #  = {}
         self.contact_names, self.contact_forces = [], []
         self.contacts_map = {}
         self.contacts = {}
+
+        self._com = None
+        self._energy = None
 
         if calculate:
             self.update_model()
@@ -142,8 +132,7 @@ class RobotModel:
                 self.bodies_names = set(bodies_names)
                 for body_name in self.bodies_names:
                     body = Body(name=body_name, kindyn_backend=self._model)
-                    self.bodies.update({body})
-                    setattr(self, body_name, body)
+                    self.bodies[body_name] = body
 
             else:
                 self.bodies_names = bodies_names
@@ -151,13 +140,27 @@ class RobotModel:
                     # print(dict([body_pairs]))
                     body = Body(name=dict([body_pairs]), kindyn_backend=self._model)
 
-                    self.bodies.update({body})
-                    setattr(self, body_pairs[0], body)
+                    self.bodies[body_pairs[0]] = body
+
+    def body(self, body_name) -> Body:
+        try:
+            return self.bodies[body_name]
+        except KeyError:
+            raise KeyError(f"Body {body_name} is not added")
 
     def update_bodies(self):
-        for body in self.bodies:
-            # print(body.__dict__)
-            body.update()
+        for body_name in self.bodies:
+            self.body(body_name).update()
+
+    def com(self) -> CoM:
+        if self._com is None:
+            raise ValueError("CoM is not calculated, run `update_model()` first")
+        return self._com
+
+    def energy(self) -> Energy:
+        if self._energy is None:
+            raise ValueError("Energy is not calculated, run `update_model()` first")
+        return self._energy
 
     def update_model(self):
         if hasattr(self, "bodies_names"):
@@ -166,20 +169,18 @@ class RobotModel:
         self.update_dynamics()
         self.update_state_space()
 
-        for quantity in self._general_struct.keys():
-            setattr(
-                self, quantity, RecursiveNamespace(**self._general_struct[quantity])
-            )
-
     def update_dynamics(self):
-
-        self._general_struct["com"]["position"] = self._model.com["position"]
-        self._general_struct["com"]["velocity"] = self._model.com["velocity"]
-        self._general_struct["com"]["acceleration"] = self._model.com["acceleration"]
-        self._general_struct["com"]["jacobian"] = self._model.com["jacobian"]
-        self._general_struct["com"]["jacobian_dt"] = self._model.com["jacobian_dt"]
-        self._general_struct["energy"]["kinetic"] = self._model.kinetic_energy
-        self._general_struct["energy"]["potential"] = self._model.potential_energy
+        self._com = CoM(
+            position=self._model.com["position"],
+            velocity=self._model.com["velocity"],
+            acceleration=self._model.com["acceleration"],
+            jacobian=self._model.com["jacobian"],
+            jacobian_dt=self._model.com["jacobian_dt"],
+        )
+        self._energy = Energy(
+            kinetic=self._model.kinetic_energy,
+            potential=self._model.potential_energy,
+        )
 
         self.lagrangian = cs.Function(
             "lagrangian",
@@ -194,7 +195,7 @@ class RobotModel:
 
         self.inertia = self._model.inertia_matrix
         qforce_sum = 0
-        for body in self.bodies:
+        for body in self.bodies.values():
             # body = getattr(self, body_name)
             if body.contact is not None:
                 qforce = body.contact.contact_qforce(self._q, body.contact._force)

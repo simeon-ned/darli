@@ -1,3 +1,6 @@
 [submodule "examples/robots_managerie"]
 	path = examples/robots_managerie
 	url = git@git.sberrobots.ru:legged-robotics-team/robots_managerie.git
+[submodule "examples/yet_another_menagerie"]
+	path = examples/yet_another_menagerie
+	url = git@github.com:lvjonok/yet_another_menagerie.git
