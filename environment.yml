@@ -1,0 +1,10 @@
+name: darli
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - ipykernel
+  - pip:
+      - darli
+      - cmeel_casadi_kin_dyn

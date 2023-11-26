@@ -1,0 +1,29 @@
+### General Model and Dynamics 
+
+| Function Name           | Inputs                                       | Outputs              | Output Dimension      | Description                                                                                                                                                            |
+|-------------------------|----------------------------------------------|----------------------|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `model.lagrangian`      | `q`, `dq`                                    | `lagrangian`         | Scalar                | Lagrangian (difference between kinetic and potential energy) of the system.                                                                                           |
+| `model.inverse_dynamics`| `q`, `dq`, `ddq`, `contact_forces`           | `tau`                | `nv`-dimensional vector | Joint torques required to achieve joint positions, velocities, and accelerations, taking into account contact forces applied on the bodies.                          |
+| `model.gravity`         | `q`                                          | `tau_grav`           | `nv`-dimensional vector | Joint torques required to counteract gravitational forces on the system.                                                                                                |
+| `model.bias_force`      | `q`, `dq`                                    | `tau_bias`           | `nv`-dimensional vector | Joint torques required to compensate for bias forces (coriolis and centrifugal forces) on the system.                                                                |
+| `model.coriolis`        | `q`, `dq`                                    | `coriolis`           | `nv`-dimensional vector | Coriolis and centrifugal forces on the system.                                                                                                                        |
+| `model.coriolis_matrix` | `q`, `dq`                                    | `coriolis_matrix`    | `nv`x`nv` matrix       | Jacobian of coriolis and centrifugal forces with respect to joint velocities.                                                                                         |
+| `model.forward_dynamics`| `q`, `dq`, `u`, `contact_forces`              | `ddq`                | `nv`-dimensional vector | Joint accelerations using joint positions, velocities, applied torques, and contact forces.                                                                            |
+| `model.contact_qforce`  | `q`, `contact_forces`                         | `qforce_sum`         | `nv`-dimensional vector | Total contact forces on the joints, using joint positions and contact forces applied on the bodies.                                                                   |
+| `model.inertia`         | -                                            | `inertia_matrix`     | `nq`x`nq` matrix       | Inertia matrix of the system.                                                                                                                                         |
+| `model.com`            | -                                            | `position`, `velocity`, `acceleration`, `jacobian` | `3`-dimensional vector, `3`-dimensional vector, `3`-dimensional vector, `3`x`nv` matrix | Position, velocity, acceleration, and Jacobian of the center of mass (COM) of the system.   |
+| `model.kinetic_energy`  | `q`, `dq`                                    | `kinetic_energy`      | Scalar                | Total kinetic energy of the system.                                                                                                                                   |
+| `model.potential_energy`| `q`                                          | `potential_energy`    | Scalar                | Total potential energy of the system.                                                                                                                                 |
+
+### State Space 
+
+| Function Name                              | Inputs                        | Outputs     | Output Dimension         | Description                                                                                                                               |
+|--------------------------------------------|-------------------------------|-------------|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| `model.state_space.state_derivative`              | `state, u, contact_forces`    | `xdot`      | `nq+nv`-dimensional vector                        | Derivative of the state variable with respect to time.                                                                                    |
+| `model.state_space.state_jacobian`                | `state, u, contact_forces`    | `dfdx`      | `nq`x`nq` matrix         | Jacobian matrix of the state derivative with respect to the state variable, where `nq` is the size of the state vector.                  |
+| `model.state_space.input_jacobian`                | `state, u, contact_forces`    | `dfdu`      | `nq`x`nu` matrix         | Jacobian matrix of the state derivative with respect to the input, where `nq` is the size of the state vector and `nu` is the size of the input vector. |
+| `model.state_space.{body}_force_jacobian`         | `state, u, contact_forces`    | `df_dforce` | `nq`x`nw` matrix         | Jacobian matrix of the state derivative with respect to the wrench associated with a specific body, where `nq` is the size of the state vector and `nf` is the size of the wrench vector. |
+
+### Bodies
+
+### Contact 
