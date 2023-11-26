@@ -1,5 +1,4 @@
 import casadi as cs
-from typing import List
 
 # TODO:
 # Contact should take its Jacobian and argument as input
@@ -8,7 +7,6 @@ from typing import List
 class Contact:
     """Class to represent body of the model"""
 
-    # TODO: Add wrench and friction cone constraints
     # TODO: Add Rotation matrix
 
     def __init__(

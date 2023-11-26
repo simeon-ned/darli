@@ -258,10 +258,3 @@ class KinDynBackend:
             ["q", "v", "tau"],
             ["dv"],
         )
-
-
-# Body class perform kinematics for each body
-# if name is string name is same as urdf
-# if name is dict - name is mapping between urdf and name
-
-# class Contact

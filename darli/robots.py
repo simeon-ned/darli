@@ -25,7 +25,6 @@ class Biped(RobotModel):
         reference="world_aligned",
         calculate=True,
     ):
-
         bodies_names = {}
 
         if torso is not None:
@@ -43,7 +42,7 @@ class Biped(RobotModel):
         super().__init__(urdf_path, bodies_names=bodies_names, calculate=False)
 
         for foot in foots.keys():
-            body = getattr(self, foot)
+            body = self.body(foot)
             body.add_contact(frame=reference, contact_type="wrench")
 
         self.set_selector(passive_joints=range(6), calculate=True)
@@ -61,7 +60,6 @@ class Quadruped(RobotModel):
         reference="world_aligned",
         calculate=True,
     ):
-
         bodies_names = {}
 
         if torso is not None:
@@ -83,7 +81,7 @@ class Quadruped(RobotModel):
         super().__init__(urdf_path, bodies_names=bodies_names, calculate=False)
 
         for foot in foots.keys():
-            body = getattr(self, foot)
+            body = self.body(foot)
             body.add_contact(frame=reference, contact_type="point")
 
         self.set_selector(passive_joints=range(6), calculate=True)
@@ -91,7 +89,6 @@ class Quadruped(RobotModel):
 
 class Manipulator(RobotModel):
     def __init__(self, urdf_path, end_effector=None, reference="world", calculate=True):
-
         bodies_names = {}
 
         if end_effector is not None:
@@ -103,7 +100,7 @@ class Manipulator(RobotModel):
 
         super().__init__(urdf_path, bodies_names=bodies_names, calculate=False)
 
-        for body in self.bodies:
+        for body in self.bodies.values():
             # body.update()
 
             body.add_contact(frame=reference, contact_type="wrench")

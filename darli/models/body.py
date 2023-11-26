@@ -1,5 +1,13 @@
-from symbotics.utils import RecursiveNamespace
-from symbotics.models.contact import Contact
+from dataclasses import dataclass
+from darli.models.contact import Contact
+import casadi as cs
+
+
+@dataclass
+class Frame:
+    local: cs.Function
+    world: cs.Function
+    world_aligned: cs.Function
 
 
 class Body:
@@ -28,23 +36,59 @@ class Body:
 
         self.contact = None
         self.__contact_type = contact_type
-        self.jacobian = None
-        self.jacobian_dt = None
-        self.linear_velocity = None
-        self.angular_velocity = None
-        self.linear_acceleration = None
-        self.angular_acceleration = None
+        self._jacobian = None
+        self._jacobian_dt = None
+        self._linear_velocity = None
+        self._angular_velocity = None
+        self._linear_acceleration = None
+        self._angular_acceleration = None
 
-        self.__jacobian = self._model._frames_struct.copy()
-        self.__jacobian_dt = self._model._frames_struct.copy()
-        self.__linear_velocity = self._model._frames_struct.copy()
-        self.__angular_velocity = self._model._frames_struct.copy()
-        self.__linear_acceleration = self._model._frames_struct.copy()
-        self.__angular_acceleration = self._model._frames_struct.copy()
+        self.__jacobian = {}
+        self.__jacobian_dt = {}
+        self.__linear_velocity = {}
+        self.__angular_velocity = {}
+        self.__linear_acceleration = {}
+        self.__angular_acceleration = {}
         if update:
             self.update()
         # self.__linear_acceleration = self._model._frames_struct.copy()
         # self.__angular_acceleration = self._model._frames_struct.copy()
+
+    def jacobian(self) -> Frame:
+        if self._jacobian is None:
+            raise ValueError("Jacobian is not calculated, run `update()` first")
+        return self._jacobian
+
+    def jacobian_dt(self) -> Frame:
+        if self._jacobian_dt is None:
+            raise ValueError(
+                "Jacobian derivative is not calculated, run `update()` first"
+            )
+        return self._jacobian_dt
+
+    def linear_velocity(self) -> Frame:
+        if self._linear_velocity is None:
+            raise ValueError("Linear velocity is not calculated, run `update()` first")
+        return self._linear_velocity
+
+    def angular_velocity(self) -> Frame:
+        if self._angular_velocity is None:
+            raise ValueError("Angular velocity is not calculated, run `update()` first")
+        return self._angular_velocity
+
+    def linear_acceleration(self) -> Frame:
+        if self._linear_acceleration is None:
+            raise ValueError(
+                "Linear acceleration is not calculated, run `update()` first"
+            )
+        return self._linear_acceleration
+
+    def angular_acceleration(self) -> Frame:
+        if self._angular_acceleration is None:
+            raise ValueError(
+                "Angular acceleration is not calculated, run `update()` first"
+            )
+        return self._angular_acceleration
 
     def update(self):
         self._model.update_body(self.name, self.urdf_name)
@@ -72,17 +116,17 @@ class Body:
             self.__angular_acceleration[
                 reference_frame
             ] = self._model.body_angular_acceleration[reference_frame]
-        # TODO: ADD ACCELERATION
-        self.jacobian = RecursiveNamespace(**self.__jacobian.copy())
-        self.linear_velocity = RecursiveNamespace(**self.__linear_velocity.copy())
-        self.angular_velocity = RecursiveNamespace(**self.__angular_velocity.copy())
-        self.linear_acceleration = RecursiveNamespace(
-            **self.__linear_acceleration.copy()
+
+        self._jacobian = Frame(
+            **self.__jacobian.copy(),
         )
-        self.angular_acceleration = RecursiveNamespace(
-            **self.__angular_acceleration.copy()
+        self._linear_velocity = Frame(
+            **self.__linear_velocity.copy(),
         )
-        self.jacobian_dt = RecursiveNamespace(**self.__jacobian_dt.copy())
+        self._angular_velocity = Frame(**self.__angular_velocity.copy())
+        self._linear_acceleration = Frame(**self.__linear_acceleration.copy())
+        self._angular_acceleration = Frame(**self.__angular_acceleration.copy())
+        self._jacobian_dt = Frame(**self.__jacobian_dt.copy())
         if self.__contact_type is not None:
             self.add_contact(self.__contact_type)
         else:

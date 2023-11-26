@@ -16,7 +16,6 @@ import casadi as cs
 
 class StateSpace:
     def __init__(self, name=None, model=None, velocity_mapping=None, update=False):
-
         if model is None:
             print("Provide the symbotics model as input...")
             return
@@ -39,6 +38,8 @@ class StateSpace:
         self.input_jacobian = None
         self.velocity_mapping = None
         self.integrator = None
+
+        self._force_jacobian = {}
 
         if update:
             self.update()
@@ -72,7 +73,7 @@ class StateSpace:
             ["dfdu"],
         )
 
-        for body in self.bodies:
+        for body in self.bodies.values():
             if body.contact is not None:
                 df_dforce = cs.jacobian(xdot, body.contact._force)
                 force_jacobian = cs.Function(
@@ -82,4 +83,10 @@ class StateSpace:
                     ["x", "u", *self.contact_names],
                     ["dfdforce"],
                 )
-                setattr(self, f"{body.name}_force_jacobian", force_jacobian)
+                self._force_jacobian[body.name] = force_jacobian
+
+    def force_jacobian(self, body_name: str) -> cs.Function:
+        try:
+            return self._force_jacobian[body_name]
+        except KeyError:
+            raise KeyError(f"Body {body_name} is not added or has no contact")
