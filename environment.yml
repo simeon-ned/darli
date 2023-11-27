@@ -6,5 +6,7 @@ dependencies:
   - pip
   - ipykernel
   - pip:
-      - darli
       - cmeel_casadi_kin_dyn
+      - darli
+      - mujoco
+      - mediapy
