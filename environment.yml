@@ -1,10 +1,11 @@
-name: darli
+name: base
 channels:
   - conda-forge
 dependencies:
   - python=3.10
   - pip
   - ipykernel
+  - libgfortran5
   - pip:
       - cmeel_casadi_kin_dyn
       - darli
