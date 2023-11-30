@@ -7,7 +7,4 @@ dependencies:
   - ipykernel
   - libgfortran5
   - pip:
-      - cmeel_casadi_kin_dyn
       - darli
-      - mujoco
-      - mediapy
