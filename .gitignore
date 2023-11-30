@@ -68,6 +68,8 @@ instance/
 # Scrapy stuff:
 .scrapy
 tests*
+!tests/_reduced*
+!tests/_parametric*
 # Sphinx documentation
 docs/_build/
 
