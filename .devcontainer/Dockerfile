@@ -6,6 +6,11 @@ RUN micromamba install --yes --file /tmp/env.yaml && \
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1  # (otherwise python will not be found)
 
+USER root
+# install git
+RUN apt-get update && apt-get install -y git
+USER $MAMBA_USER
+
 # create needed files
 RUN cd $CONDA_PREFIX && \
     mkdir -p ./etc/conda/activate.d && \

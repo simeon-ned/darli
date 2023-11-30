@@ -8,3 +8,4 @@ dependencies:
   - libgfortran5
   - pip:
       - darli
+      - robot_descriptions

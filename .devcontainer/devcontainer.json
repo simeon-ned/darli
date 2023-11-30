@@ -1,10 +1,9 @@
 {
     // "build": {
-    //     ""
     //     "dockerfile": "Dockerfile",
     //     "context": ".."
     // },
-    "image": "robotlev/darli:0.1.0",
+    "image": "robotlev/darli:0.1.1",
     "customizations": {
         "vscode": {
             "extensions": [
