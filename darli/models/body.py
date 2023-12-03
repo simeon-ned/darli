@@ -1,19 +1,27 @@
 from dataclasses import dataclass
 from darli.models.contact import Contact
 import casadi as cs
+from typing import Dict
+import numpy.typing as npt
 
 
 @dataclass
 class Frame:
-    local: cs.Function
-    world: cs.Function
-    world_aligned: cs.Function
+    local: cs.Function | npt.ArrayLike
+    world: cs.Function | npt.ArrayLike
+    world_aligned: cs.Function | npt.ArrayLike
 
 
 class Body:
     """Class to represent body of the model"""
 
-    def __init__(self, name=None, kindyn_backend=None, contact_type=None, update=True):
+    def __init__(
+        self,
+        name: Dict[str, str] | str,
+        kindyn_backend,
+        contact_type=None,
+        update=True,
+    ):
         # if dictionary then this is map name -> urdf_name
         if isinstance(name, dict):
             self.name = list(name.keys())[0]
@@ -22,122 +30,139 @@ class Body:
             self.name = name
             self.urdf_name = name
 
-        # mappings
-        if kindyn_backend is None:
-            print("Provide the modeling backend")
-            # TODO: Exit
-        else:
-            self._model = kindyn_backend
+        self.__backend = kindyn_backend
 
-        self.position = None
-        self.quaternion = None
-        self.rotation = None
-        self.energy = {"kinetic": None, "potential": None}
+        self.__position = None
+        self.__rotation = None
 
-        self.contact = None
+        self.__contact = None
         self.__contact_type = contact_type
-        self._jacobian = None
-        self._jacobian_dt = None
-        self._linear_velocity = None
-        self._angular_velocity = None
-        self._linear_acceleration = None
-        self._angular_acceleration = None
+        self.__jacobian = None
+        self.__jacobian_dt = None
+        self.__linear_velocity = None
+        self.__angular_velocity = None
+        self.__linear_acceleration = None
+        self.__angular_acceleration = None
 
-        self.__jacobian = {}
-        self.__jacobian_dt = {}
-        self.__linear_velocity = {}
-        self.__angular_velocity = {}
-        self.__linear_acceleration = {}
-        self.__angular_acceleration = {}
         if update:
             self.update()
-        # self.__linear_acceleration = self._model._frames_struct.copy()
-        # self.__angular_acceleration = self._model._frames_struct.copy()
 
+    @property
+    def contact(self) -> Contact:
+        if self.__contact is None:
+            raise ValueError("There is no contact, run `add_contact()` first")
+
+        return self.__contact
+
+    @property
+    def position(self):
+        if self.__position is None:
+            raise ValueError("Position is not calculated, run `update()` first")
+        return self.__position
+
+    @property
+    def rotation(self):
+        if self.__rotation is None:
+            raise ValueError("Rotation is not calculated, run `update()` first")
+        return self.__rotation
+
+    @property
+    def quaternion(self):
+        raise NotImplementedError
+
+    @property
     def jacobian(self) -> Frame:
-        if self._jacobian is None:
+        if self.__jacobian is None:
             raise ValueError("Jacobian is not calculated, run `update()` first")
-        return self._jacobian
+        return self.__jacobian
 
+    @property
     def jacobian_dt(self) -> Frame:
-        if self._jacobian_dt is None:
+        if self.__jacobian_dt is None:
             raise ValueError(
                 "Jacobian derivative is not calculated, run `update()` first"
             )
-        return self._jacobian_dt
+        return self.__jacobian_dt
 
+    @property
     def linear_velocity(self) -> Frame:
-        if self._linear_velocity is None:
+        if self.__linear_velocity is None:
             raise ValueError("Linear velocity is not calculated, run `update()` first")
-        return self._linear_velocity
+        return self.__linear_velocity
 
+    @property
     def angular_velocity(self) -> Frame:
-        if self._angular_velocity is None:
+        if self.__angular_velocity is None:
             raise ValueError("Angular velocity is not calculated, run `update()` first")
-        return self._angular_velocity
+        return self.__angular_velocity
 
+    @property
     def linear_acceleration(self) -> Frame:
-        if self._linear_acceleration is None:
+        if self.__linear_acceleration is None:
             raise ValueError(
                 "Linear acceleration is not calculated, run `update()` first"
             )
-        return self._linear_acceleration
+        return self.__linear_acceleration
 
+    @property
     def angular_acceleration(self) -> Frame:
-        if self._angular_acceleration is None:
+        if self.__angular_acceleration is None:
             raise ValueError(
                 "Angular acceleration is not calculated, run `update()` first"
             )
-        return self._angular_acceleration
+        return self.__angular_acceleration
 
     def update(self):
-        self._model.update_body(self.name, self.urdf_name)
+        self.__backend.update_body(self.name, self.urdf_name)
 
-        self.position = self._model.body_position
-        self.rotation = self._model.body_rotation
-        self.quaternion = None
+        self.__position = self.__backend.body_position
+        self.__rotation = self.__backend.body_rotation
 
-        for reference_frame in self._model.frame_types:
-            self.__jacobian[reference_frame] = self._model.body_jacobian[
+        jac = {}
+        jac_dt = {}
+        lin_vel = {}
+        ang_vel = {}
+        lin_acc = {}
+        ang_acc = {}
+
+        for reference_frame in self.__backend.frame_types:
+            jac[reference_frame] = self.__backend.body_jacobian[reference_frame]
+            jac_dt[reference_frame] = self.__backend.body_jacobian_derivative[
                 reference_frame
             ]
-            self.__jacobian_dt[reference_frame] = self._model.body_jacobian_derivative[
+            lin_vel[reference_frame] = self.__backend.body_linear_velocity[
                 reference_frame
             ]
-            self.__linear_velocity[reference_frame] = self._model.body_linear_velocity[
+            ang_vel[reference_frame] = self.__backend.body_angular_velocity[
                 reference_frame
             ]
-            self.__angular_velocity[
+            lin_acc[reference_frame] = self.__backend.body_linear_acceleration[
                 reference_frame
-            ] = self._model.body_angular_velocity[reference_frame]
-            self.__linear_acceleration[
+            ]
+            ang_acc[reference_frame] = self.__backend.body_angular_acceleration[
                 reference_frame
-            ] = self._model.body_linear_acceleration[reference_frame]
-            self.__angular_acceleration[
-                reference_frame
-            ] = self._model.body_angular_acceleration[reference_frame]
+            ]
 
-        self._jacobian = Frame(
-            **self.__jacobian.copy(),
+        self.__jacobian = Frame(
+            **jac.copy(),
         )
-        self._linear_velocity = Frame(
-            **self.__linear_velocity.copy(),
+        self.__linear_velocity = Frame(
+            **lin_vel.copy(),
         )
-        self._angular_velocity = Frame(**self.__angular_velocity.copy())
-        self._linear_acceleration = Frame(**self.__linear_acceleration.copy())
-        self._angular_acceleration = Frame(**self.__angular_acceleration.copy())
-        self._jacobian_dt = Frame(**self.__jacobian_dt.copy())
+        self.__angular_velocity = Frame(**ang_vel.copy())
+        self.__linear_acceleration = Frame(**lin_acc.copy())
+        self.__angular_acceleration = Frame(**ang_acc.copy())
+        self.__jacobian_dt = Frame(**jac_dt.copy())
+
         if self.__contact_type is not None:
             self.add_contact(self.__contact_type)
-        else:
-            self.contact = None
 
     def add_contact(self, contact_type="point", frame="world_aligned"):
         self.__contact_type = contact_type
-        self.contact = Contact(
+        self.__contact = Contact(
             self.name,
             contact_type=self.__contact_type,
-            kindyn_backend=self._model,
+            kindyn_backend=self.__backend,
             frame=frame,
         )
 

@@ -1,36 +1,9 @@
 import casadi_kin_dyn.casadi_kin_dyn as cas_kin_dyn
 import casadi as cs
 
-# BUG:
-# THE DICTIONARY OF JACOBIANS FOR BODIES AND VELOCITIES ARE REPEATED
-
-
-# STRUCTURE:
-# ModelBackend
-# Functions for aba, rnea, fk etc, basic arguments of model, interface to urdf
-# RobotModel - interface to forward_dynamics, inverse_dynamics, etc
-#
-
-# TODO:
-# //////////////////////////////////////////////////////////////////
-# ADD EFFORT LIMITS FROM URDF
-# DOC STRING
-# ADD FRICTION AND JOINT INERTIAS
-# CONVERSION TO QUATERNIONS
-# ADD NAMES AND MAP OF ACTIVE JOINTS
-# MOVE BODY ATTRIBUTE TO SEPARATE CLASS WITH OWN ATTRIBUTES
-# MOVE CONTACTS TO SEPARATE CLASS WITH OWN ATTRIBUTES
-# ADD FRICTION MODEL
-# ADD MODEL BACKEND AS INPUT TO MODEL, SUCH THAT IT BECOME INDEPENDENT FROM kindyn
-# ADD QUATERNION DERIVATIVE TO STATE SPACE REPRESENTATION
-# PUT REGRESSORS TO BACK
-#
-
 
 class KinDynBackend:
     def __init__(self, urdf_path) -> None:
-        # pass
-
         self.urdf_path = urdf_path
         urdf = open(self.urdf_path, "r").read()
         self._kindyn = cas_kin_dyn.CasadiKinDyn(urdf)
@@ -54,8 +27,6 @@ class KinDynBackend:
         self.joint_names = joint_names
         self.joint_iq = self._kindyn.joint_iq
 
-        # TODO: Add bodies names
-        bodies_names = None
         self.nb = None
 
         # mappings
@@ -85,8 +56,10 @@ class KinDynBackend:
 
         self.update_dynamics()
 
+    def update(self, q, v, dv=None, tau=None):
+        ...
+
     def update_body(self, body, body_urdf_name=None):
-        # print(body, urdf_name)
         if body_urdf_name is None:
             body_urdf_name = body
 
