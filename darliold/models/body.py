@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from darli.models.contact import Contact
+from darliold.models.contact import Contact
 import casadi as cs
 from typing import Dict
 import numpy.typing as npt

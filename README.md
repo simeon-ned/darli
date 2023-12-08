@@ -13,7 +13,7 @@ The backend is based on slightly [modified version](https://github.com/lvjonok/c
 1. To install into existing environment run:
 
 ```bash
-pip3 install darli
+pip3 install darliold
 ```
 
 For now the library is actively changing, so if you are one of contributors or want to keep track of recent changes without reinstalling use the develope mode:
@@ -82,12 +82,14 @@ There are also banch of modules that facilitates work with given type of robots,
 The minimal example of using library:
 
 ```python
-from darli.robots import RobotModel
+from darliold.robots import RobotModel
 import numpy as np
 import casadi as cs
+
 # Initializing the RobotModel class
 model = RobotModel('PATH_TO_URDF_FILE.urdf',
-                    bodies_names{'end_effector': 'last_link_urdf'})
+                   bodies_names
+{'end_effector': 'last_link_urdf'})
 
 # Dynamics calculations
 inertia = model.inertia
@@ -111,16 +113,17 @@ model.body('end_effector').add_contact('wrench')
 One may also use the prebuilded templates for some common robotics structures, i.e:
 
 ```python
-from darli.robots import Biped, Manipulator, Quadruped
+from darliold.robots import Biped, Manipulator, Quadruped
+
 # Example for the bipedal robot
 # foots are subject to wrench contact
 biped_urdf = 'PATH_TO_BIPED_URDF.urdf'
 biped_model = Biped(biped_urdf,
-                    torso = {'torso': 'pelvis'},
-                    foots = {'left_foot': 'footLeftY',
-                            'right_foot': 'footRightY'},
-                    arms = {'left_arm': 'wristRollLeft',
-                           'right_arm': 'wristRollRight'})
+                    torso={'torso': 'pelvis'},
+                    foots={'left_foot': 'footLeftY',
+                           'right_foot': 'footRightY'},
+                    arms={'left_arm': 'wristRollLeft',
+                          'right_arm': 'wristRollRight'})
 
 model.forward_dynamics
 model.body('torso').position

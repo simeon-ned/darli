@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-from darli.backends import PinocchioBackend
-from darli.models.state_space import StateSpace
-from darli.models.body import Body
+from darliold.backends import PinocchioBackend
+from darliold.models.state_space import StateSpace
+from darliold.models.body import Body
 import numpy as np
 from typing import List, Dict
-from darli.models.model import RobotModel
+from darliold.models.model import RobotModel
 import pinocchio as pin
 from numpy.typing import ArrayLike
 

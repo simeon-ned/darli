@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
-from darli.backends import CasadiBackend
-from darli.models.state_space import StateSpace
-from darli.models.body import Body
+from darliold.backends import CasadiBackend
+from darliold.models.state_space import StateSpace
+from darliold.models.body import Body
 import casadi as cs
 import numpy as np
 from typing import List, Dict, Any
-from darli.models.model import RobotModel, CoM, Energy
+from darliold.models.model import RobotModel, CoM, Energy
 
 
 @dataclass

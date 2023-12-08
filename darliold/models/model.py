@@ -4,7 +4,7 @@ import pinocchio as pin
 from typing import Dict
 from dataclasses import dataclass
 import casadi as cs
-from darli.models.body import Body
+from darliold.models.body import Body
 import numpy.typing as npt
 
 
