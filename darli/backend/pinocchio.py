@@ -4,7 +4,7 @@ from ..arrays import ArrayLike, NumpyLikeFactory
 
 
 class PinocchioBackend(BackendBase):
-    array_factory = NumpyLikeFactory
+    math = NumpyLikeFactory
 
     def __init__(self, urdf_path: str) -> None:
         self.__urdf_path: str = urdf_path
@@ -114,6 +114,30 @@ class PinocchioBackend(BackendBase):
         dv: ArrayLike | None = None,
     ) -> ArrayLike:
         pass
+
+    def torque_regressor(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> ArrayLike:
+        raise NotImplementedError
+
+    def kinetic_regressor(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> ArrayLike:
+        raise NotImplementedError
+
+    def potential_regressor(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> ArrayLike:
+        raise NotImplementedError
 
     def update_body(self, body: str, body_urdf_name: str = None) -> BodyInfo:
         pass

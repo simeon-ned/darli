@@ -5,7 +5,7 @@ import casadi as cs
 
 
 class CasadiBackend(BackendBase):
-    array_factory = CasadiLikeFactory
+    math = CasadiLikeFactory
 
     def __init__(self, urdf_path: str) -> None:
         self.__urdf_path: str = urdf_path
@@ -65,28 +65,38 @@ class CasadiBackend(BackendBase):
     def kinetic_energy(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        pass
+        return self.__kindyn.kinetic_energy()(
+            q=q if q is not None else self._q, v=v if v is not None else self._v
+        )
 
-    def potential_energy(
-        self, q: ArrayLike | None = None, v: ArrayLike | None = None
-    ) -> ArrayLike:
-        pass
+    def potential_energy(self, q: ArrayLike | None = None) -> ArrayLike:
+        return self.__kindyn.potential_energy()(q=q if q is not None else self._q)
 
     def jacobian(self, q: ArrayLike | None = None) -> ArrayLike:
-        pass
+        return self.__kindyn.jacobianCenterOfMass(False)(
+            q=q if q is not None else self._q
+        )
 
     def jacobian_dt(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        pass
+        raise NotImplementedError
 
     def com_pos(self, q: ArrayLike | None = None) -> ArrayLike:
-        pass
+        return self.__kindyn.centerOfMass()(
+            q=q if q is not None else self._q,
+            v=self.math.zeros(self.nv),
+            a=self.math.zeros(self.nv),
+        )
 
     def com_vel(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        pass
+        return self.__kindyn.centerOfMass()(
+            q=q if q is not None else self._q,
+            v=v if v is not None else self._v,
+            a=self.math.zeros(self.nv),
+        )
 
     def com_acc(
         self,
@@ -94,7 +104,35 @@ class CasadiBackend(BackendBase):
         v: ArrayLike | None = None,
         dv: ArrayLike | None = None,
     ) -> ArrayLike:
-        pass
+        return self.__kindyn.centerOfMass()(
+            q=q if q is not None else self._q,
+            v=v if v is not None else self._v,
+            a=dv if dv is not None else self._dv,
+        )
+
+    def torque_regressor(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> ArrayLike:
+        raise NotImplementedError
+
+    def kinetic_regressor(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> ArrayLike:
+        raise NotImplementedError
+
+    def potential_regressor(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> ArrayLike:
+        raise NotImplementedError
 
     def update_body(self, body: str, body_urdf_name: str = None) -> BodyInfo:
         pass

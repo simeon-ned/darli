@@ -24,7 +24,7 @@ class BodyInfo:
 
 
 class BackendBase(ABC):
-    array_factory: ArrayLikeFactory
+    math: ArrayLikeFactory
 
     @property
     @abstractmethod
@@ -75,9 +75,7 @@ class BackendBase(ABC):
         pass
 
     @abstractmethod
-    def potential_energy(
-        self, q: ArrayLike | None = None, v: ArrayLike | None = None
-    ) -> ArrayLike:
+    def potential_energy(self, q: ArrayLike | None = None) -> ArrayLike:
         pass
 
     @abstractmethod
@@ -102,6 +100,33 @@ class BackendBase(ABC):
 
     @abstractmethod
     def com_acc(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> ArrayLike:
+        pass
+
+    @abstractmethod
+    def torque_regressor(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> ArrayLike:
+        pass
+
+    @abstractmethod
+    def kinetic_regressor(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> ArrayLike:
+        pass
+
+    @abstractmethod
+    def potential_regressor(
         self,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,

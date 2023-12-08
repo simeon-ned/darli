@@ -10,8 +10,8 @@ class Robot:
     def gravity(self, q: ArrayLike | None = None) -> ArrayLike:
         return self._backend.rnea(
             q,
-            self._backend.array_factory.zeros(self._backend.nv).array,
-            self._backend.array_factory.zeros(self._backend.nv).array,
+            self._backend.math.zeros(self._backend.nv).array,
+            self._backend.math.zeros(self._backend.nv).array,
         )
 
 
