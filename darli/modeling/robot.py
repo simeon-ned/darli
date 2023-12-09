@@ -1,6 +1,10 @@
+from typing import List, Dict
+
 from darli.backend import BackendBase, CasadiBackend
 from darli.arrays import ArrayLike
 import casadi as cs
+
+from .body import Body
 from .base import PinocchioBased, Energy, CoM
 
 
@@ -13,6 +17,30 @@ class Robot(PinocchioBased):
         self._v = self._backend.math.zeros(self._backend.nv).array
         self._dv = self._backend.math.zeros(self._backend.nv).array
         self._tau = self._backend.math.zeros(self._backend.nv).array
+
+        self.__bodies: Dict[str, Body] = dict()
+
+    def add_body(self, bodies_names: List[str] | Dict[str, str]):
+        if not bodies_names or len(bodies_names) == 0:
+            return
+
+        if isinstance(bodies_names, dict):
+            for body_pairs in bodies_names.items():
+                body = Body(name=dict([body_pairs]), backend=self._backend)
+                self.__bodies[body_pairs[0]] = body
+        elif isinstance(bodies_names, list):
+            for body_name in bodies_names:
+                body = Body(name=body_name, backend=self._backend)
+                self.__bodies[body_name] = body
+        else:
+            raise TypeError(
+                f"unknown type of mapping is passed to add bodies: {type(bodies_names)}"
+            )
+
+    def body(self, name: str) -> Body:
+        assert name in self.__bodies, f"Body {name} is not added"
+
+        return self.__bodies[name]
 
     def update(
         self,
@@ -29,7 +57,7 @@ class Robot(PinocchioBased):
 
     def gravity(self, q: ArrayLike | None = None) -> ArrayLike:
         return self._backend.rnea(
-            q,
+            q if q is not None else self._q,
             self._backend.math.zeros(self._backend.nv).array,
             self._backend.math.zeros(self._backend.nv).array,
         )

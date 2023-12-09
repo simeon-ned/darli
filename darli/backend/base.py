@@ -16,7 +16,7 @@ class Frame(Enum):
             return cls.LOCAL
         elif string == "world":
             return cls.WORLD
-        elif string == "local_world_aligned":
+        elif string == "world_aligned":
             return cls.LOCAL_WORLD_ALIGNED
         else:
             raise ValueError(f"Unknown frame type: {string}")

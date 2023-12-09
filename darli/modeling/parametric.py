@@ -1,9 +1,18 @@
+from typing import List, Dict
+
 from darli.backend import BackendBase
 from darli.arrays import ArrayLike
+from . import Body
 from .base import PinocchioBased, Energy, CoM
 
 
 class ParametricRobot(PinocchioBased):
+    def add_body(self, bodies_names: List[str] | Dict[str, str]):
+        pass
+
+    def body(self, name: str) -> Body:
+        pass
+
     def __init__(
         self, backend: BackendBase, urdf_path: str
     ):  # TODO: we need urdf in all cases

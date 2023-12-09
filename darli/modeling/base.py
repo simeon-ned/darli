@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from ..arrays import ArrayLike
 import pinocchio as pin
+from typing import List, Dict
+from .body import Body, FrameQuantity
 
 
 @dataclass
@@ -128,6 +130,14 @@ class ModelBase(ABC):
     @abstractmethod
     def selector(self):
         pass
+
+    @abstractmethod
+    def add_body(self, bodies_names: List[str] | Dict[str, str]):
+        ...
+
+    @abstractmethod
+    def body(self, name: str) -> Body:
+        ...
 
 
 class PinocchioBased(ModelBase, ABC):

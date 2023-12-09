@@ -2,17 +2,21 @@
 
 from darli.backend import CasadiBackend as Backend
 from darli.backend import BackendBase as BackendBase
-from darli.modeling import ParametricRobot
+from darli.modeling import ParametricRobot, Robot
 from robot_descriptions import z1_description
+import numpy as np
 
 if __name__ == "__main__":
     back: BackendBase = Backend(z1_description.URDF_PATH)
 
     back.inertia_matrix()
 
-    model: ParametricRobot = ParametricRobot(back, z1_description.URDF_PATH)
+    model = Robot(back, z1_description.URDF_PATH)
+    model.add_body({"ee": "link06"})
 
-    model.inertia()
+    print(model.inertia())
+
+    print(model.body("ee").jacobian.world_aligned)
 
     # model: Robot = Robot(back)
     #

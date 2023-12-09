@@ -44,8 +44,9 @@ class CasadiBackend(BackendBase):
         v: ArrayLike,
         dv: ArrayLike | None = None,
         tau: ArrayLike | None = None,
-    ) -> ArrayLike:
-        pass
+    ):
+        self._q = q
+        self._v = v
 
     def rnea(
         self,
@@ -162,39 +163,39 @@ class CasadiBackend(BackendBase):
             position=self.__kindyn.fk(body_urdf_name)(q=self._q)["ee_pos"],
             rotation=self.__kindyn.fk(body_urdf_name)(q=self._q)["ee_rot"],
             jacobian={
-                Frame.from_str(frame): self.__kindyn.jacobian(body_urdf_name, frame)(
-                    q=self._q
-                )["J"]
+                Frame.from_str(frame): self.__kindyn.jacobian(
+                    body_urdf_name, self.__frame_mapping[frame]
+                )(q=self._q)["J"]
                 for frame in self.__frame_types
             },
             lin_vel={
                 Frame.from_str(frame): self.__kindyn.frameVelocity(
-                    body_urdf_name, frame
+                    body_urdf_name, self.__frame_mapping[frame]
                 )(q=self._q, qdot=self._v)["ee_vel_linear"]
                 for frame in self.__frame_types
             },
             ang_vel={
                 Frame.from_str(frame): self.__kindyn.frameVelocity(
-                    body_urdf_name, frame
+                    body_urdf_name, self.__frame_mapping[frame]
                 )(q=self._q, qdot=self._v)["ee_vel_angular"]
                 for frame in self.__frame_types
             },
             lin_acc={
                 Frame.from_str(frame): self.__kindyn.frameAcceleration(
-                    body_urdf_name, frame
+                    body_urdf_name, self.__frame_mapping[frame]
                 )(q=self._q, qdot=self._v, qddot=self._dv)["ee_acc_linear"]
                 for frame in self.__frame_types
             },
             ang_acc={
                 Frame.from_str(frame): self.__kindyn.frameAcceleration(
-                    body_urdf_name, frame
+                    body_urdf_name, self.__frame_mapping[frame]
                 )(q=self._q, qdot=self._v, qddot=self._dv)["ee_acc_angular"]
                 for frame in self.__frame_types
             },
             djacobian={
                 Frame.from_str(frame): self.__kindyn.jacobianTimeVariation(
-                    body_urdf_name, frame
-                )(q=self._q, qdot=self._v)["dJ"]
+                    body_urdf_name, self.__frame_mapping[frame]
+                )(q=self._q, v=self._v)["dJ"]
                 for frame in self.__frame_types
             },
         )
