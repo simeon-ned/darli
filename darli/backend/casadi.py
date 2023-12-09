@@ -1,6 +1,6 @@
 import casadi_kin_dyn.casadi_kin_dyn as ckd
 from .base import BackendBase, Frame, BodyInfo
-from ..arrays import CasadiLike, CasadiLikeFactory, ArrayLike
+from ..arrays import CasadiLikeFactory, ArrayLike
 import casadi as cs
 
 
@@ -21,6 +21,14 @@ class CasadiBackend(BackendBase):
         self._dv = cs.SX.sym("dv", self.__nv)
 
         self._tau = cs.SX.sym("tau", self.__nv)
+
+        self.__frame_mapping = {
+            "local": ckd.CasadiKinDyn.LOCAL,
+            "world": ckd.CasadiKinDyn.WORLD,
+            "world_aligned": ckd.CasadiKinDyn.LOCAL_WORLD_ALIGNED,
+        }
+
+        self.__frame_types = self.__frame_mapping.keys()
 
     @property
     def nq(self) -> int:
@@ -116,7 +124,11 @@ class CasadiBackend(BackendBase):
         v: ArrayLike | None = None,
         dv: ArrayLike | None = None,
     ) -> ArrayLike:
-        raise NotImplementedError
+        return self.__kindyn.jointTorqueRegressor()(
+            q=q if q is not None else self._q,
+            v=v if v is not None else self._v,
+            a=dv if dv is not None else self._dv,
+        )["regressor"]
 
     def kinetic_regressor(
         self,
@@ -124,7 +136,11 @@ class CasadiBackend(BackendBase):
         v: ArrayLike | None = None,
         dv: ArrayLike | None = None,
     ) -> ArrayLike:
-        raise NotImplementedError
+        return self.__kindyn.kineticEnergyRegressor()(
+            q=q if q is not None else self._q,
+            v=v if v is not None else self._v,
+            a=dv if dv is not None else self._dv,
+        )["regressor"]
 
     def potential_regressor(
         self,
@@ -132,7 +148,53 @@ class CasadiBackend(BackendBase):
         v: ArrayLike | None = None,
         dv: ArrayLike | None = None,
     ) -> ArrayLike:
-        raise NotImplementedError
+        return self.__kindyn.potentialEnergyRegressor()(
+            q=q if q is not None else self._q,
+            v=v if v is not None else self._v,
+            a=dv if dv is not None else self._dv,
+        )["regressor"]
 
     def update_body(self, body: str, body_urdf_name: str = None) -> BodyInfo:
-        pass
+        if body_urdf_name is None:
+            body_urdf_name = body
+
+        return BodyInfo(
+            position=self.__kindyn.fk(body_urdf_name)(q=self._q)["ee_pos"],
+            rotation=self.__kindyn.fk(body_urdf_name)(q=self._q)["ee_rot"],
+            jacobian={
+                Frame.from_str(frame): self.__kindyn.jacobian(body_urdf_name, frame)(
+                    q=self._q
+                )["J"]
+                for frame in self.__frame_types
+            },
+            lin_vel={
+                Frame.from_str(frame): self.__kindyn.frameVelocity(
+                    body_urdf_name, frame
+                )(q=self._q, qdot=self._v)["ee_vel_linear"]
+                for frame in self.__frame_types
+            },
+            ang_vel={
+                Frame.from_str(frame): self.__kindyn.frameVelocity(
+                    body_urdf_name, frame
+                )(q=self._q, qdot=self._v)["ee_vel_angular"]
+                for frame in self.__frame_types
+            },
+            lin_acc={
+                Frame.from_str(frame): self.__kindyn.frameAcceleration(
+                    body_urdf_name, frame
+                )(q=self._q, qdot=self._v, qddot=self._dv)["ee_acc_linear"]
+                for frame in self.__frame_types
+            },
+            ang_acc={
+                Frame.from_str(frame): self.__kindyn.frameAcceleration(
+                    body_urdf_name, frame
+                )(q=self._q, qdot=self._v, qddot=self._dv)["ee_acc_angular"]
+                for frame in self.__frame_types
+            },
+            djacobian={
+                Frame.from_str(frame): self.__kindyn.jacobianTimeVariation(
+                    body_urdf_name, frame
+                )(q=self._q, qdot=self._v)["dJ"]
+                for frame in self.__frame_types
+            },
+        )

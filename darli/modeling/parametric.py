@@ -1,18 +1,22 @@
-from darli.backend import BackendBase, CasadiBackend
+from darli.backend import BackendBase
 from darli.arrays import ArrayLike
-import casadi as cs
 from .base import PinocchioBased, Energy, CoM
 
 
-class Robot(PinocchioBased):
-    def __init__(self, backend: BackendBase, urdf_path: str):
+class ParametricRobot(PinocchioBased):
+    def __init__(
+        self, backend: BackendBase, urdf_path: str
+    ):  # TODO: we need urdf in all cases
         super().__init__(urdf_path)
+
         self._backend = backend
 
-        self._q = self._backend.math.zeros(self._backend.nq).array
-        self._v = self._backend.math.zeros(self._backend.nv).array
-        self._dv = self._backend.math.zeros(self._backend.nv).array
-        self._tau = self._backend.math.zeros(self._backend.nv).array
+        self._q = self._backend.math.zeros(self.nq).array
+        self._v = self._backend.math.zeros(self.nv).array
+        self._dv = self._backend.math.zeros(self.nv).array
+        self._tau = self._backend.math.zeros(self.nv).array
+
+        self._parameters = self._backend.math.zeros(self.nbodies * 10).array
 
     def update(
         self,
@@ -27,15 +31,42 @@ class Robot(PinocchioBased):
         self._tau = tau
         return self._backend.update(q, v, dv, tau)
 
+    def inverse_dynamics(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        tau: ArrayLike | None = None,
+    ) -> ArrayLike:
+        return (
+            self._backend.torque_regressor(
+                q if q is not None else self._q,
+                v if v is not None else self._v,
+                tau if tau is not None else self._tau,
+            )
+            @ self._parameters
+        )
+
     def gravity(self, q: ArrayLike | None = None) -> ArrayLike:
-        return self._backend.rnea(
-            q,
+        return self.inverse_dynamics(
+            q if q is not None else self._q,
             self._backend.math.zeros(self._backend.nv).array,
             self._backend.math.zeros(self._backend.nv).array,
         )
 
     def inertia(self, q: ArrayLike | None = None) -> ArrayLike:
-        return self._backend.inertia_matrix(q if q else self._q)
+        inertia = self._backend.math.zeros((self.nv, self.nv)).array
+        unit_vectors = self._backend.math.eye(self.nv).array
+
+        for i in range(self.nv):
+            unit_vector = unit_vectors[i, :]
+            inertia[:, i] = (
+                self._backend.torque_regressor(
+                    self._q, self._backend.math.zeros(self.nv).array, unit_vector
+                )
+                @ self._parameters
+            )
+
+        return inertia
 
     def com(
         self,
@@ -93,14 +124,6 @@ class Robot(PinocchioBased):
     ) -> ArrayLike:
         pass
 
-    def inverse_dynamics(
-        self,
-        q: ArrayLike | None = None,
-        v: ArrayLike | None = None,
-        dv: ArrayLike | None = None,
-    ) -> ArrayLike:
-        pass
-
     @property
     def state_space(self):
         pass
@@ -108,26 +131,3 @@ class Robot(PinocchioBased):
     @property
     def selector(self):
         pass
-
-
-class Symbolic:
-    def __init__(self, backend: BackendBase):
-        assert isinstance(
-            backend, CasadiBackend
-        ), "Symbolic robot only works with Casadi backend"
-        self._backend = backend
-
-    def gravity(self) -> cs.Function:
-        return cs.Function(
-            "gravity",
-            [self._backend._q],
-            [
-                self._backend.rnea(
-                    self._backend._q,
-                    self._backend.math.zeros(self._backend.nv).array,
-                    self._backend.math.zeros(self._backend.nv).array,
-                )
-            ],
-            ["q"],
-            ["tau"],
-        )

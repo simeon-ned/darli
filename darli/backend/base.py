@@ -10,6 +10,17 @@ class Frame(Enum):
     WORLD = 2
     LOCAL_WORLD_ALIGNED = 3
 
+    @classmethod
+    def from_str(cls, string: str) -> "Frame":
+        if string == "local":
+            return cls.LOCAL
+        elif string == "world":
+            return cls.WORLD
+        elif string == "local_world_aligned":
+            return cls.LOCAL_WORLD_ALIGNED
+        else:
+            raise ValueError(f"Unknown frame type: {string}")
+
 
 @dataclass
 class BodyInfo:
