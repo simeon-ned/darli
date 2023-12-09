@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     back.inertia_matrix()
 
-    model = Robot(back, z1_description.URDF_PATH)
+    model = ParametricRobot(back, z1_description.URDF_PATH)
     model.add_body({"ee": "link06"})
 
     print(model.inertia())
