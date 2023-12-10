@@ -122,4 +122,4 @@ class CasadiLikeFactory(ArrayLikeFactory):
         Returns:
             CasadiLike: Vector wrapping *x
         """
-        return CasadiLike(cs.SX(*x))
+        return CasadiLike(cs.SX.sym(*x))

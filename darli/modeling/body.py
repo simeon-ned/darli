@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from ..arrays import ArrayLike
 from ..backend import BackendBase, BodyInfo, Frame
+from .contact import Contact
 
 
 @dataclass
@@ -22,16 +23,17 @@ class Body:
         self.__backend: BackendBase = backend
 
         self.__info: BodyInfo | None = None
+        self.__contact_type = contact_type
+        self.__contact: Contact = None
 
         self.update()
 
     @property
     def contact(self):
-        if self.__info is None:
+        if self.__contact is None:
             raise ValueError("There is no contact, run `add_contact()` first")
 
-        # return
-        raise NotImplementedError
+        return self.__contact
 
     @property
     def position(self):
@@ -117,3 +119,10 @@ class Body:
 
     def update(self):
         self.__info = self.__backend.update_body(self.name, self.urdf_name)
+
+        if self.__contact_type is not None:
+            self.add_contact(self.__contact_type)
+
+    def add_contact(self, contact_type="point", frame=Frame.LOCAL_WORLD_ALIGNED):
+        self.__contact_type = contact_type
+        self.__contact = Contact(self.urdf_name, self.__backend, frame=frame)

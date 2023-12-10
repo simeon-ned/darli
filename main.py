@@ -18,6 +18,12 @@ if __name__ == "__main__":
 
     print(model.body("ee").jacobian.world_aligned)
 
+    model.body("ee").add_contact("point")
+
+    model.body("ee").contact.add_cone(0.5)
+
+    model.body("ee").contact.cone
+
     # model: Robot = Robot(back)
     #
     # res = model.gravity(np.array([0, 0, 0, 0, 0, 0]))

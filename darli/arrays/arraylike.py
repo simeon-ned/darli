@@ -88,3 +88,11 @@ class ArrayLikeFactory(abc.ABC):
             npt.ArrayLike: identity matrix of dimension x
         """
         pass
+
+    @abc.abstractmethod
+    def array(*x) -> npt.ArrayLike:
+        """
+        Args:
+            x (npt.ArrayLike): matrix dimension
+        """
+        pass

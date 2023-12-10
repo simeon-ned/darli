@@ -34,6 +34,16 @@ class BodyInfo:
     ang_acc: Dict[Frame, ArrayLike]
 
 
+class ConeBase(ABC):
+    @abstractmethod
+    def full(self, force: ArrayLike | None) -> ArrayLike:
+        pass
+
+    @abstractmethod
+    def linear(self, force: ArrayLike | None) -> ArrayLike:
+        pass
+
+
 class BackendBase(ABC):
     math: ArrayLikeFactory
 
@@ -147,4 +157,10 @@ class BackendBase(ABC):
 
     @abstractmethod
     def update_body(self, body: str, body_urdf_name: str = None) -> BodyInfo:
+        pass
+
+    @abstractmethod
+    def cone(
+        self, force: ArrayLike | None, mu: float, type: str, X=None, Y=None
+    ) -> ConeBase:
         pass
