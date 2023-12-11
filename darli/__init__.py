@@ -1,4 +1,3 @@
-# from .backend import *
-import casadi_kin_dyn.casadi_kin_dyn as _
+import casadi_kin_dyn.casadi_kin_dyn as _  # noqa: F401
 
-import darli.backend
+import darli.backend  # noqa: F401

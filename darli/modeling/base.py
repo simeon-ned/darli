@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from ..arrays import ArrayLike
 from typing import List, Dict
 from .body import Body
-from ..backend import PinocchioBased
 
 
 @dataclass

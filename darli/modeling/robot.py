@@ -1,8 +1,7 @@
 from typing import List, Dict
 
-from darli.backend import BackendBase, CasadiBackend
+from darli.backend import BackendBase
 from darli.arrays import ArrayLike
-import casadi as cs
 import numpy as np
 
 from .body import Body
