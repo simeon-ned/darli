@@ -145,6 +145,7 @@ class CasadiBackend(BackendBase):
     math = CasadiLikeFactory
 
     def __init__(self, urdf_path: str) -> None:
+        super().__init__(urdf_path)
         self.__urdf_path: str = urdf_path
         urdf = open(self.__urdf_path, "r").read()
         self.__kindyn: ckd.CasadiKinDyn = ckd.CasadiKinDyn(urdf)
@@ -203,7 +204,11 @@ class CasadiBackend(BackendBase):
         v: ArrayLike | None = None,
         tau: ArrayLike | None = None,
     ) -> ArrayLike:
-        pass
+        return self.__kindyn.aba()(
+            q=q if q is not None else self._q,
+            v=v if v is not None else self._v,
+            tau=tau if tau is not None else self._tau,
+        )["a"]
 
     def inertia_matrix(self, q: ArrayLike | None = None) -> ArrayLike:
         return self.__kindyn.crba()(q=q if q is not None else self._q)["B"]
@@ -226,7 +231,14 @@ class CasadiBackend(BackendBase):
     def jacobian_dt(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        raise NotImplementedError
+        return cs.jacobian(
+            self.com_acc(
+                q=q if q is not None else self._q,
+                v=v if v is not None else self._v,
+                dv=self.math.zeros(self.nv),
+            ),
+            v if v is not None else self._v,
+        )
 
     def com_pos(self, q: ArrayLike | None = None) -> ArrayLike:
         return self.__kindyn.centerOfMass()(

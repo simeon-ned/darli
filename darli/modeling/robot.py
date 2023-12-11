@@ -5,12 +5,11 @@ from darli.arrays import ArrayLike
 import casadi as cs
 
 from .body import Body
-from .base import PinocchioBased, Energy, CoM
+from .base import Energy, CoM, ModelBase
 
 
-class Robot(PinocchioBased):
+class Robot(ModelBase):
     def __init__(self, backend: BackendBase, urdf_path: str):
-        super().__init__(urdf_path)
         self._backend = backend
 
         self._q = self._backend.math.zeros(self._backend.nq).array
@@ -19,6 +18,18 @@ class Robot(PinocchioBased):
         self._tau = self._backend.math.zeros(self._backend.nv).array
 
         self.__bodies: Dict[str, Body] = dict()
+
+    @property
+    def nq(self) -> int:
+        return self._backend.nq
+
+    @property
+    def nv(self) -> int:
+        return self._backend.nv
+
+    @property
+    def nbodies(self) -> int:
+        return self._backend.nbodies
 
     def add_body(self, bodies_names: List[str] | Dict[str, str]):
         if not bodies_names or len(bodies_names) == 0:

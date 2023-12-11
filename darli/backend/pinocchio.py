@@ -1,5 +1,5 @@
 import pinocchio as pin
-from .base import BackendBase, Frame, BodyInfo, ConeBase
+from .base import BackendBase, BodyInfo, ConeBase, Frame
 from ..arrays import ArrayLike, NumpyLikeFactory
 import numpy as np
 
@@ -129,6 +129,7 @@ class PinocchioBackend(BackendBase):
     math = NumpyLikeFactory
 
     def __init__(self, urdf_path: str) -> None:
+        super().__init__(urdf_path)
         self.__urdf_path: str = urdf_path
         self.__model: pin.Model = pin.buildModelFromUrdf(self.__urdf_path)
         self.__data: pin.Data = self.__model.createData()
@@ -142,6 +143,14 @@ class PinocchioBackend(BackendBase):
         self._dv = pin.utils.zero(self.__nv)
 
         self._tau = pin.utils.zero(self.__nv)
+
+        self.__frame_mapping = {
+            "local": pin.LOCAL,
+            "world": pin.WORLD,
+            "world_aligned": pin.LOCAL_WORLD_ALIGNED,
+        }
+
+        self.__frame_types = self.__frame_mapping.keys()
 
         self.update(self._q, self._v, self._dv, self._tau)
 
@@ -193,7 +202,13 @@ class PinocchioBackend(BackendBase):
         v: ArrayLike | None = None,
         tau: ArrayLike | None = None,
     ) -> ArrayLike:
-        pass
+        return pin.aba(
+            self.__model,
+            self.__data,
+            q if q is not None else self._q,
+            v if v is not None else self._v,
+            tau if tau is not None else self._tau,
+        )
 
     def inertia_matrix(self, q: ArrayLike | None = None) -> ArrayLike:
         if q is None:
@@ -206,28 +221,55 @@ class PinocchioBackend(BackendBase):
     def kinetic_energy(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        pass
+        if q is None and v is None:
+            return self.__data.kinetic_energy
 
-    def potential_energy(
-        self, q: ArrayLike | None = None, v: ArrayLike | None = None
-    ) -> ArrayLike:
-        pass
+        self._q = q
+        self._v = v
+        pin.computeAllTerms(self.__model, self.__data, q, v)
+        return self.__data.kinetic_energy
+
+    def potential_energy(self, q: ArrayLike | None = None) -> ArrayLike:
+        if q is None:
+            return self.__data.potential_energy
+
+        self._q = q
+        pin.computeAllTerms(self.__model, self.__data, q, self._v)
+        return self.__data.potential_energy
 
     def jacobian(self, q: ArrayLike | None = None) -> ArrayLike:
-        pass
+        if q is None:
+            return self.__data.Jcom
+
+        self._q = q
+        pin.computeAllTerms(self.__model, self.__data, q, self._v)
+        return self.__data.Jcom
 
     def jacobian_dt(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        pass
+        raise NotImplementedError(
+            "time variation of CoM jacobian is not implemented for pinocchio backend"
+        )
 
     def com_pos(self, q: ArrayLike | None = None) -> ArrayLike:
-        pass
+        if q is None:
+            return self.__data.com[0]
+
+        self._q = q
+        pin.computeAllTerms(self.__model, self.__data, q, self._v)
+        return self.__data.com[0]
 
     def com_vel(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        pass
+        if q is None and v is None:
+            return self.__data.vcom[0]
+
+        self._q = q
+        self._v = v
+        pin.computeAllTerms(self.__model, self.__data, q, v)
+        return self.__data.vcom[0]
 
     def com_acc(
         self,
@@ -235,7 +277,14 @@ class PinocchioBackend(BackendBase):
         v: ArrayLike | None = None,
         dv: ArrayLike | None = None,
     ) -> ArrayLike:
-        pass
+        if q is None and v is None and dv is None:
+            return self.__data.acom[0]
+
+        self._q = q
+        self._v = v
+        self._dv = dv
+        pin.computeAllTerms(self.__model, self.__data, q, v, dv)
+        return self.__data.acom[0]
 
     def torque_regressor(
         self,
@@ -243,26 +292,112 @@ class PinocchioBackend(BackendBase):
         v: ArrayLike | None = None,
         dv: ArrayLike | None = None,
     ) -> ArrayLike:
-        raise NotImplementedError
+        if q is None and v is None and dv is None:
+            return self.__data.jointTorqueRegressor
+
+        self._q = q
+        self._v = v
+        self._dv = dv
+        pin.computeAllTerms(self.__model, self.__data, q, v, dv)
+        return self.__data.jointTorqueRegressor
 
     def kinetic_regressor(
         self,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
-        dv: ArrayLike | None = None,
     ) -> ArrayLike:
-        raise NotImplementedError
+        if q or v:
+            self._q = q if q is not None else self._q
+            self._v = v if v is not None else self._v
+            pin.computeAllTerms(self.__model, self.__data, q, v)
+
+        regressor = np.zeros((self.nbodies, 10))
+        for i in range(self.nbodies):
+            vel = pin.getVelocity(self.__model, self.__data, i + 1, pin.LOCAL)
+            vl = vel.linear
+            va = vel.angular
+
+            regressor[i, 0] = 0.5 * (vl[0] ** 2 + vl[1] ** 2 + vl[2] ** 2)
+            regressor[i, 1] = -va[1] * vl[2] + va[2] * vl[1]
+            regressor[i, 2] = va[0] * vl[2] - va[2] * vl[0]
+            regressor[i, 3] = -va[0] * vl[1] + va[1] * vl[0]
+            regressor[i, 4] = 0.5 * va[0] ** 2
+            regressor[i, 5] = va[0] * va[1]
+            regressor[i, 6] = 0.5 * va[1] ** 2
+            regressor[i, 7] = va[0] * va[2]
+            regressor[i, 8] = va[1] * va[2]
+            regressor[i, 9] = 0.5 * va[2] ** 2
+
+        return regressor
 
     def potential_regressor(
         self,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
-        dv: ArrayLike | None = None,
     ) -> ArrayLike:
-        raise NotImplementedError
+        if q or v:
+            self._q = q if q is not None else self._q
+            self._v = v if v is not None else self._v
+            pin.computeAllTerms(self.__model, self.__data, q, v)
+
+        regressor = np.zeros((self.nbodies, 10))
+        for i in range(self.nbodies):
+            r = self.__data.oMi[i + 1].translation
+            R = self.__data.oMi[i + 1].rotation
+            g = self.__model.gravity.linear
+
+            res = R @ g
+            regressor[i, 0] = g.dot(r)
+            regressor[i, 1] = res[0]
+            regressor[i, 2] = res[1]
+            regressor[i, 3] = res[2]
+
+        return regressor
 
     def update_body(self, body: str, body_urdf_name: str = None) -> BodyInfo:
-        pass
+        if body_urdf_name is None:
+            body_urdf_name = body
+
+        frame_idx = self.__model.getFrameId(body_urdf_name)
+
+        jacobian = {
+            Frame.from_str(frame): pin.getFrameJacobian(
+                self.__model, self.__data, frame_idx, fstr
+            )
+            for frame, fstr in self.__frame_mapping.items()
+        }
+
+        djacobian = {
+            Frame.from_str(frame): pin.getFrameJacobianTimeVariation(
+                self.__model, self.__data, frame_idx, fstr
+            )
+            for frame, fstr in self.__frame_mapping.items()
+        }
+
+        return BodyInfo(
+            position=self.__data.oMf[frame_idx].translation,
+            rotation=self.__data.oMf[frame_idx].rotation,
+            jacobian=jacobian,
+            djacobian=djacobian,
+            lin_vel={
+                Frame.from_str(frame): jacobian[Frame.from_str(frame)][:3] @ self._v
+                for frame in self.__frame_types
+            },
+            ang_vel={
+                Frame.from_str(frame): jacobian[Frame.from_str(frame)][3:] @ self._v
+                for frame in self.__frame_types
+            },
+            lin_acc={
+                Frame.from_str(frame): jacobian[Frame.from_str(frame)][:3] @ self._dv
+                + djacobian[Frame.from_str(frame)][:3] @ self._v
+                for frame in self.__frame_types
+            },
+            ang_acc={
+                Frame.from_str(frame): jacobian[Frame.from_str(frame)][3:] @ self._dv
+                + djacobian[Frame.from_str(frame)][3:] @ self._v
+                for frame in self.__frame_types
+            },
+        )
 
     def cone(
         self, force: ArrayLike | None, mu: float, type: str, X=None, Y=None

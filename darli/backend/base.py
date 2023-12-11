@@ -3,6 +3,7 @@ from enum import Enum
 from dataclasses import dataclass
 from typing import Dict
 from ..arrays import ArrayLike, ArrayLikeFactory
+import pinocchio as pin
 
 
 class Frame(Enum):
@@ -44,7 +45,25 @@ class ConeBase(ABC):
         pass
 
 
-class BackendBase(ABC):
+class PinocchioBased:
+    def __init__(self, urdf_path: str) -> None:
+        self._pinmodel: pin.Model = pin.buildModelFromUrdf(urdf_path)
+        self._pindata: pin.Data = self._pinmodel.createData()
+
+    @property
+    def nq(self) -> int:
+        return self._pinmodel.nq
+
+    @property
+    def nv(self) -> int:
+        return self._pinmodel.nv
+
+    @property
+    def nbodies(self) -> int:
+        return self._pinmodel.nbodies - 1
+
+
+class BackendBase(ABC, PinocchioBased):
     math: ArrayLikeFactory
 
     @property

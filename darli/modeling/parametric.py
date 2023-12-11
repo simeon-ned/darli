@@ -3,14 +3,11 @@ from typing import List, Dict
 from darli.backend import BackendBase
 from darli.arrays import ArrayLike
 from .body import Body
-from .base import PinocchioBased, Energy, CoM
+from .base import Energy, CoM, ModelBase
 
 
-class ParametricRobot(PinocchioBased):
-    def __init__(
-        self, backend: BackendBase, urdf_path: str
-    ):  # TODO: we need urdf in all cases
-        super().__init__(urdf_path)
+class ParametricRobot(ModelBase):
+    def __init__(self, backend: BackendBase):
 
         self._backend = backend
 
@@ -21,6 +18,18 @@ class ParametricRobot(PinocchioBased):
 
         self._parameters = self._backend.math.zeros(self.nbodies * 10).array
         self.__bodies: Dict[str, Body] = dict()
+
+    @property
+    def nq(self) -> int:
+        return self._backend.nq
+
+    @property
+    def nv(self) -> int:
+        return self._backend.nv
+
+    @property
+    def nbodies(self) -> int:
+        return self._backend.nbodies
 
     def add_body(self, bodies_names: List[str] | Dict[str, str]):
         if not bodies_names or len(bodies_names) == 0:

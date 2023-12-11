@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from ..arrays import ArrayLike
-import pinocchio as pin
 from typing import List, Dict
-from .body import Body, FrameQuantity
+from .body import Body
+from ..backend import PinocchioBased
 
 
 @dataclass
@@ -138,21 +138,3 @@ class ModelBase(ABC):
     @abstractmethod
     def body(self, name: str) -> Body:
         ...
-
-
-class PinocchioBased(ModelBase, ABC):
-    def __init__(self, urdf_path: str) -> None:
-        self._pinmodel: pin.Model = pin.buildModelFromUrdf(urdf_path)
-        self._pindata: pin.Data = self._pinmodel.createData()
-
-    @property
-    def nq(self) -> int:
-        return self._pinmodel.nq
-
-    @property
-    def nv(self) -> int:
-        return self._pinmodel.nv
-
-    @property
-    def nbodies(self) -> int:
-        return self._pinmodel.nbodies - 1
