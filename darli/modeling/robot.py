@@ -144,16 +144,31 @@ class Robot(ModelBase):
         return en.kinetic - en.potential
 
     @property
-    def contact_forces(self) -> ArrayLike:
-        pass
+    def contact_forces(self) -> List[ArrayLike]:
+        forces = []
+        for body in self.__bodies.values():
+            if body.contact is not None:
+                forces.append(body.contact.force)
+
+        return forces
 
     @property
-    def contact_names(self) -> ArrayLike:
-        pass
+    def contact_names(self) -> List[str]:
+        names = []
+        for body in self.__bodies.values():
+            if body.contact is not None:
+                names.append(body.contact.name)
+
+        return names
 
     @property
     def contact_qforce(self) -> ArrayLike:
-        pass
+        qforce = 0
+        for body in self.__bodies.values():
+            if body.contact is not None:
+                qforce += body.contact.qforce
+
+        return qforce
 
     def coriolis_matrix(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
@@ -172,7 +187,8 @@ class Robot(ModelBase):
         return self._backend.aba(
             q if q else self._q,
             v if v else self._v,
-            tau=self._qfrc_u if u is None else self.selector @ u,
+            tau=(self._qfrc_u if u is None else self.selector @ u)
+            + self.contact_qforce,
         )
 
     def inverse_dynamics(
@@ -195,7 +211,7 @@ class Robot(ModelBase):
 
     @property
     def state_space(self):
-        pass
+        raise NotImplementedError("state space is not implemented yet")
 
     @property
     def selector(self):

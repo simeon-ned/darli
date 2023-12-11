@@ -1,6 +1,6 @@
-from darli.backend import PinocchioBackend as Backend
+# from darli.backend import PinocchioBackend as Backend
 
-# from darli.backend import CasadiBackend as Backend
+from darli.backend import CasadiBackend as Backend
 from darli.backend import BackendBase as BackendBase
 from darli.modeling import ParametricRobot, Robot, Symbolic
 from robot_descriptions import z1_description
@@ -25,11 +25,16 @@ if __name__ == "__main__":
     # model.body("ee").contact.cone
 
     model: Robot = Robot(back, z1_description.URDF_PATH)
-    model.add_body({"ee": "link06"})
+    model.add_body({"ee": "link06", "l2": "link02"})
 
     res = model.gravity(np.array([0, 0, 0, 0, 0, 0]))
     print("-" * 30)
     print(res)
+
+    model.body("ee").add_contact()
+    model.body("l2").add_contact()
+
+    print(model.contact_forces)
 
     # back.update(q=np.array([1, 1, 1, 1, 1, 1]), v=np.zeros(6), dv=np.zeros(6))
 

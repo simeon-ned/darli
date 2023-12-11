@@ -30,9 +30,6 @@ class Body:
 
     @property
     def contact(self):
-        if self.__contact is None:
-            raise ValueError("There is no contact, run `add_contact()` first")
-
         return self.__contact
 
     @property

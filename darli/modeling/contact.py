@@ -32,6 +32,10 @@ class Contact:
 
         self.__cone = None
 
+    @property
+    def name(self):
+        return self.__name
+
     def update(self):
         self.__jacobian = self.__backend.update_body(self.__name).jacobian[
             self.__frame
