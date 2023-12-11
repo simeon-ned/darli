@@ -10,13 +10,13 @@ from .base import Energy, CoM, ModelBase
 
 
 class Robot(ModelBase):
-    def __init__(self, backend: BackendBase, urdf_path: str):
+    def __init__(self, backend: BackendBase):
         self._backend = backend
 
-        self._q = self._backend.math.zeros(self._backend.nq).array
-        self._v = self._backend.math.zeros(self._backend.nv).array
-        self._dv = self._backend.math.zeros(self._backend.nv).array
-        self._qfrc_u = self._backend.math.zeros(self._backend.nv).array
+        self._q = self._backend._q
+        self._v = self._backend._v
+        self._dv = self._backend._dv
+        self._qfrc_u = self._backend._tau
 
         self.__bodies: Dict[str, Body] = dict()
         self.update_selector()
@@ -85,7 +85,7 @@ class Robot(ModelBase):
         dv: ArrayLike | None = None,
     ) -> CoM:
         return CoM(
-            position=self._backend.com_pos(q if q else self._q, v if v else self._v),
+            position=self._backend.com_pos(q if q else self._q),
             velocity=self._backend.com_vel(q if q else self._q, v if v else self._v),
             acceleration=self._backend.com_acc(
                 q if q else self._q,
@@ -93,7 +93,7 @@ class Robot(ModelBase):
                 dv if dv else self._dv,
             ),
             jacobian=self._backend.jacobian(q if q else self._q),
-            jacobian_dt=self._backend.acobian_dt(
+            jacobian_dt=self._backend.jacobian_dt(
                 q if q else self._q, v if v else self._v
             ),
         )
@@ -240,26 +240,3 @@ class Robot(ModelBase):
                     )
 
             self.__selector = np.delete(self.__selector, joint_id, axis=1)
-
-
-class Symbolic:
-    def __init__(self, backend: BackendBase):
-        assert isinstance(
-            backend, CasadiBackend
-        ), "Symbolic robot only works with Casadi backend"
-        self._backend = backend
-
-    def gravity(self) -> cs.Function:
-        return cs.Function(
-            "gravity",
-            [self._backend._q],
-            [
-                self._backend.rnea(
-                    self._backend._q,
-                    self._backend.math.zeros(self._backend.nv).array,
-                    self._backend.math.zeros(self._backend.nv).array,
-                )
-            ],
-            ["q"],
-            ["tau"],
-        )

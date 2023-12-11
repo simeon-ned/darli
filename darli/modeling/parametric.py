@@ -6,9 +6,8 @@ from .body import Body
 from .base import Energy, CoM, ModelBase
 
 
-class ParametricRobot(ModelBase):
+class Parametric(ModelBase):
     def __init__(self, backend: BackendBase):
-
         self._backend = backend
 
         self._q = self._backend.math.zeros(self.nq).array
