@@ -1,12 +1,11 @@
-
-
 - State Space
-  - [ ] The proper Jacobians with quaternions in the state (tangent )
+  - [ ] Handle quaternions and their derivatives (velocity mapping)
+  - [ ] The proper Jacobians with quaternions in the state (tangent bundle)
   - [ ] The discrete state space (integrator)
   - [ ] Implement Hamiltonian State Space i.e `state = [position, momentum]`
 - Modeling Backends
   - [ ] Refactor the model class, add folder with backends
-  - [ ] Implement or use some ready implementation `rnea, crba, regressor, forward_kinematics` with JAX or PyTorch 
+  - [ ] Implement or use some ready implementation `rnea, crba, regressor, forward_kinematics` with JAX/PyTorch 
   - [ ] Pure pinocchio backend and 'all-in-one' update  
 - Constrained and Contact Dynamics
   - [ ] Features to create closed loops with holonomic/nonholonomic constraints (Lagrangian/Udwadia-Kalaba)
@@ -16,11 +15,14 @@
   - [ ] Implement all dynamical attributes with auxilary `parameter` input
   - [ ] `Regressors` class
 - General:
-  - [ ] Add number of bodies `nv` and their names to model attributes.  
+  - [ ] Add number of bodies `nb` and their names to model attributes.  
+  - [ ] Setting free-flyer joints (to prevent locking floating body to ground)
+  - [ ] Locking joints feature to facilitate reduced models (i.e. saggital models of bipeds)
   - [ ] Configuration difference functions
   - [ ] Code generation and just in time compilation
   - [ ] Prepare docs and proper examples for each aspect of the library
   - [ ] Friction and Joint inertias for active joints
   - [ ] Effort/velocity limits from urdf
+  - [ ] The cheat sheet for all necessary modules
 - Refactoring 
   - [ ] Do the following...

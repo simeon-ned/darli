@@ -1,19 +1,6 @@
 # from ._template import RobotModel
 from .models import RobotModel
 
-# //////////////////////////////////////////////////////////////////
-# GALLERY OF DIFFERENT ROBOTS:
-# ATLAS
-# B1+Z1
-# GO1
-# KUKA-IIWA
-# PANDA
-# UR10
-# Z1
-# QUADROTOR
-# TWO-LINK
-# INVERTED-PENDULUM
-
 
 class Biped(RobotModel):
     def __init__(

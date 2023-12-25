@@ -29,7 +29,6 @@ def forward_kinematics(joint_positions):
 
         return torch.tensor(frame_position, requires_grad=True)
 
-
 # Compute the forward kinematics with autograd
 frame_position = forward_kinematics(joint_positions)
 
