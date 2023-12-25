@@ -16,9 +16,11 @@ class Contact:
             raise ValueError(f"Unknown contact type: {self.__type}")
 
         # contact jacobian matches the dimension of contact force
-        self.__jacobian = self.__backend.update_body(self.__name).jacobian[
-            self.__frame
-        ][:, self.dim :]
+        self.__jacobian = (
+            self.__backend.update_body(self.__name)
+            .jacobian[self.__frame]
+            .T[:, : self.dim]
+        )
         # print(f"shape of jacobian: {self.__jacobian.shape}")
 
         if isinstance(self.__backend, CasadiBackend):
@@ -41,9 +43,11 @@ class Contact:
         return self.__frame
 
     def update(self):
-        self.__jacobian = self.__backend.update_body(self.__name).jacobian[
-            self.__frame
-        ][: self.dim, :]
+        self.__jacobian = (
+            self.__backend.update_body(self.__name)
+            .jacobian[self.__frame]
+            .T[:, : self.dim]
+        )
 
         self.__contact_qforce = self.__jacobian @ self.__force
 

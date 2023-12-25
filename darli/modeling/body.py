@@ -122,4 +122,9 @@ class Body:
 
     def add_contact(self, contact_type="point", frame=Frame.LOCAL_WORLD_ALIGNED):
         self.__contact_type = contact_type
-        self.__contact = Contact(self.urdf_name, self.__backend, frame=frame)
+        self.__contact = Contact(
+            self.urdf_name,
+            self.__backend,
+            frame=frame,
+            type=contact_type,
+        )
