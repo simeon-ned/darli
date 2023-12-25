@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, List
 from ..arrays import ArrayLike, ArrayLikeFactory
 import pinocchio as pin
 
@@ -62,19 +62,34 @@ class PinocchioBased:
     def nbodies(self) -> int:
         return self._pinmodel.nbodies - 1
 
+    @property
+    def q_min(self) -> int:
+        return self._pinmodel.lowerPositionLimit
+
+    @property
+    def q_max(self) -> int:
+        return self._pinmodel.upperPositionLimit
+
+    @property
+    def joint_names(self) -> List[str]:
+        return list(self._pinmodel.names)
+
+    def joint_id(self, name: str) -> int:
+        return self._pinmodel.getJointId(name)
+
 
 class BackendBase(ABC, PinocchioBased):
     math: ArrayLikeFactory
 
-    @property
-    @abstractmethod
-    def nq(self) -> int:
-        pass
+    # @property
+    # @abstractmethod
+    # def nq(self) -> int:
+    #     pass
 
-    @property
-    @abstractmethod
-    def nv(self) -> int:
-        pass
+    # @property
+    # @abstractmethod
+    # def nv(self) -> int:
+    #     pass
 
     @abstractmethod
     def update(

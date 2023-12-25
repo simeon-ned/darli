@@ -186,6 +186,11 @@ class CasadiBackend(BackendBase):
         self._q = q
         self._v = v
 
+        if dv is not None:
+            self._dv = dv
+        if tau is not None:
+            self._tau = tau
+
     def rnea(
         self,
         q: ArrayLike | None = None,
@@ -216,17 +221,17 @@ class CasadiBackend(BackendBase):
     def kinetic_energy(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        return self.__kindyn.kinetic_energy()(
+        return self.__kindyn.kineticEnergy()(
             q=q if q is not None else self._q, v=v if v is not None else self._v
-        )
+        )["DT"]
 
     def potential_energy(self, q: ArrayLike | None = None) -> ArrayLike:
-        return self.__kindyn.potential_energy()(q=q if q is not None else self._q)
+        return self.__kindyn.potentialEnergy()(q=q if q is not None else self._q)["DU"]
 
     def jacobian(self, q: ArrayLike | None = None) -> ArrayLike:
         return self.__kindyn.jacobianCenterOfMass(False)(
             q=q if q is not None else self._q
-        )
+        )["Jcom"]
 
     def jacobian_dt(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
@@ -235,7 +240,7 @@ class CasadiBackend(BackendBase):
             self.com_acc(
                 q=q if q is not None else self._q,
                 v=v if v is not None else self._v,
-                dv=self.math.zeros(self.nv),
+                dv=self.math.zeros(self.nv).array,
             ),
             v if v is not None else self._v,
         )
@@ -243,9 +248,9 @@ class CasadiBackend(BackendBase):
     def com_pos(self, q: ArrayLike | None = None) -> ArrayLike:
         return self.__kindyn.centerOfMass()(
             q=q if q is not None else self._q,
-            v=self.math.zeros(self.nv),
-            a=self.math.zeros(self.nv),
-        )
+            v=self.math.zeros(self.nv).array,
+            a=self.math.zeros(self.nv).array,
+        )["com"]
 
     def com_vel(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
@@ -253,8 +258,8 @@ class CasadiBackend(BackendBase):
         return self.__kindyn.centerOfMass()(
             q=q if q is not None else self._q,
             v=v if v is not None else self._v,
-            a=self.math.zeros(self.nv),
-        )
+            a=self.math.zeros(self.nv).array,
+        )["vcom"]
 
     def com_acc(
         self,
@@ -266,7 +271,7 @@ class CasadiBackend(BackendBase):
             q=q if q is not None else self._q,
             v=v if v is not None else self._v,
             a=dv if dv is not None else self._dv,
-        )
+        )["acom"]
 
     def torque_regressor(
         self,

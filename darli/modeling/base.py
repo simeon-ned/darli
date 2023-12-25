@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from ..arrays import ArrayLike
 from typing import List, Dict
 from .body import Body
+from ..backend import BackendBase
 
 
 @dataclass
@@ -23,12 +24,61 @@ class Energy:
 class ModelBase(ABC):
     @property
     @abstractmethod
+    def q(self) -> ArrayLike:
+        pass
+
+    @property
+    @abstractmethod
+    def v(self) -> ArrayLike:
+        pass
+
+    @property
+    @abstractmethod
+    def dv(self) -> ArrayLike:
+        pass
+
+    @property
+    @abstractmethod
+    def qfrc_u(self) -> ArrayLike:
+        pass
+
+    @property
+    @abstractmethod
+    def backend(self) -> BackendBase:
+        pass
+
+    @property
+    @abstractmethod
+    def bodies(self) -> Dict[str, Body]:
+        pass
+
+    @property
+    @abstractmethod
     def nq(self) -> int:
         pass
 
     @property
     @abstractmethod
     def nv(self) -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def nu(self) -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def q_min(self) -> ArrayLike:
+        pass
+
+    @property
+    @abstractmethod
+    def q_max(self) -> ArrayLike:
+        pass
+
+    @abstractmethod
+    def joint_id(self, name: str) -> int:
         pass
 
     @property

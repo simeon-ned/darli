@@ -36,6 +36,10 @@ class Contact:
     def name(self):
         return self.__name
 
+    @property
+    def ref_frame(self):
+        return self.__frame
+
     def update(self):
         self.__jacobian = self.__backend.update_body(self.__name).jacobian[
             self.__frame
