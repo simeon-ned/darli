@@ -6,7 +6,7 @@ import numpy as np
 
 from .base import Energy, CoM, ModelBase, BodyBase
 from .body import Body
-from .state_space import StateSpace, CasadiStateSpace
+from .state_space import CasadiStateSpace, PinocchioStateSpace
 
 
 class Robot(ModelBase):
@@ -29,7 +29,7 @@ class Robot(ModelBase):
         if isinstance(self.backend, CasadiBackend):
             self.__state_space = CasadiStateSpace(self)
         else:
-            self.__state_space = StateSpace(self)
+            self.__state_space = PinocchioStateSpace(self)
 
     @property
     def q(self) -> ArrayLike:

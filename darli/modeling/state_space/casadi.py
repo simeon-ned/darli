@@ -20,8 +20,8 @@ class CasadiStateSpace(StateSpace):
 
     def force_jacobian(self, body_name: str) -> cs.Function:
         # early quit if we have already computed the jacobian
-        if body_name in self.__force_jacobians:
-            return self.__force_jacobians[body_name]
+        if body_name in self.force_jacobians:
+            return self.force_jacobians[body_name]
 
         if any(body_name in body.name for body in self.model.bodies.values()):
             raise KeyError(f"Body {body_name} is not added to the model")
