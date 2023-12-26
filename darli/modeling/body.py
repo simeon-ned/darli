@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from ..arrays import ArrayLike
 from ..backend import BackendBase, BodyInfo, Frame
 from .contact import Contact
+from .base import BodyBase
+import casadi as cs
 
 
 @dataclass
@@ -11,7 +13,7 @@ class FrameQuantity:
     world_aligned: ArrayLike
 
 
-class Body:
+class Body(BodyBase):
     def __init__(self, name, backend: BackendBase, contact_type=None):
         if isinstance(name, dict):
             self.name = list(name.keys())[0]
@@ -29,7 +31,11 @@ class Body:
         self.update()
 
     @property
-    def contact(self):
+    def backend(self) -> BackendBase:
+        return self.__backend
+
+    @property
+    def contact(self) -> Contact:
         return self.__contact
 
     @property
@@ -128,3 +134,190 @@ class Body:
             frame=frame,
             type=contact_type,
         )
+
+
+class SymbolicBody(BodyBase):
+    def __init__(self, name, backend: BackendBase, contact_type=None):
+        self.__body = Body(name, backend, contact_type)
+
+    @property
+    def backend(self) -> BackendBase:
+        return self.__body.backend
+
+    @property
+    def contact(self):
+        return self.__body.contact
+
+    @property
+    def position(self):
+        return cs.Function(
+            "position",
+            [self.__body.backend._q],
+            [self.__body.position],
+        )
+
+    @property
+    def rotation(self):
+        return cs.Function(
+            "rotation",
+            [self.__body.backend._q],
+            [self.__body.rotation],
+        )
+
+    @property
+    def quaternion(self):
+        return cs.Function(
+            "quaternion",
+            [self.__body.backend._q],
+            [self.__body.quaternion],
+        )
+
+    @property
+    def jacobian(self):
+        return FrameQuantity(
+            local=cs.Function(
+                "jacobian_local",
+                [self.__body.backend._q],
+                [self.__body.jacobian.local],
+            ),
+            world=cs.Function(
+                "jacobian_world",
+                [self.__body.backend._q],
+                [self.__body.jacobian.world],
+            ),
+            world_aligned=cs.Function(
+                "jacobian_world_aligned",
+                [self.__body.backend._q],
+                [self.__body.jacobian.world_aligned],
+            ),
+        )
+
+    @property
+    def jacobian_dt(self):
+        return FrameQuantity(
+            local=cs.Function(
+                "jacobian_dt_local",
+                [self.__body.backend._q, self.__body.backend._v],
+                [self.__body.jacobian_dt.local],
+            ),
+            world=cs.Function(
+                "jacobian_dt_world",
+                [self.__body.backend._q, self.__body.backend._v],
+                [self.__body.jacobian_dt.world],
+            ),
+            world_aligned=cs.Function(
+                "jacobian_dt_world_aligned",
+                [self.__body.backend._q, self.__body.backend._v],
+                [self.__body.jacobian_dt.world_aligned],
+            ),
+        )
+
+    @property
+    def linear_velocity(self):
+        return FrameQuantity(
+            local=cs.Function(
+                "linear_velocity_local",
+                [self.__body.backend._q, self.__body.backend._v],
+                [self.__body.linear_velocity.local],
+            ),
+            world=cs.Function(
+                "linear_velocity_world",
+                [self.__body.backend._q, self.__body.backend._v],
+                [self.__body.linear_velocity.world],
+            ),
+            world_aligned=cs.Function(
+                "linear_velocity_world_aligned",
+                [self.__body.backend._q, self.__body.backend._v],
+                [self.__body.linear_velocity.world_aligned],
+            ),
+        )
+
+    @property
+    def angular_velocity(self):
+        return FrameQuantity(
+            local=cs.Function(
+                "angular_velocity_local",
+                [self.__body.backend._q, self.__body.backend._v],
+                [self.__body.angular_velocity.local],
+            ),
+            world=cs.Function(
+                "angular_velocity_world",
+                [self.__body.backend._q, self.__body.backend._v],
+                [self.__body.angular_velocity.world],
+            ),
+            world_aligned=cs.Function(
+                "angular_velocity_world_aligned",
+                [self.__body.backend._q, self.__body.backend._v],
+                [self.__body.angular_velocity.world_aligned],
+            ),
+        )
+
+    @property
+    def linear_acceleration(self):
+        return FrameQuantity(
+            local=cs.Function(
+                "linear_acceleration_local",
+                [
+                    self.__body.backend._q,
+                    self.__body.backend._v,
+                    self.__body.backend._dv,
+                ],
+                [self.__body.linear_acceleration.local],
+            ),
+            world=cs.Function(
+                "linear_acceleration_world",
+                [
+                    self.__body.backend._q,
+                    self.__body.backend._v,
+                    self.__body.backend._dv,
+                ],
+                [self.__body.linear_acceleration.world],
+            ),
+            world_aligned=cs.Function(
+                "linear_acceleration_world_aligned",
+                [
+                    self.__body.backend._q,
+                    self.__body.backend._v,
+                    self.__body.backend._dv,
+                ],
+                [self.__body.linear_acceleration.world_aligned],
+            ),
+        )
+
+    @property
+    def angular_acceleration(self):
+        return FrameQuantity(
+            local=cs.Function(
+                "angular_acceleration_local",
+                [
+                    self.__body.backend._q,
+                    self.__body.backend._v,
+                    self.__body.backend._dv,
+                ],
+                [self.__body.angular_acceleration.local],
+            ),
+            world=cs.Function(
+                "angular_acceleration_world",
+                [
+                    self.__body.backend._q,
+                    self.__body.backend._v,
+                    self.__body.backend._dv,
+                ],
+                [self.__body.angular_acceleration.world],
+            ),
+            world_aligned=cs.Function(
+                "angular_acceleration_world_aligned",
+                [
+                    self.__body.backend._q,
+                    self.__body.backend._v,
+                    self.__body.backend._dv,
+                ],
+                [self.__body.angular_acceleration.world_aligned],
+            ),
+        )
+
+    def update(self):
+        self.__body.update()
+
+    def add_contact(self, contact_type="point", frame=Frame.LOCAL_WORLD_ALIGNED):
+        self.__body.add_contact(contact_type, frame)

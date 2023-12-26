@@ -2,8 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from ..arrays import ArrayLike
 from typing import List, Dict
-from .body import Body
-from ..backend import BackendBase
+from ..backend import BackendBase, Frame
 
 
 @dataclass
@@ -19,6 +18,71 @@ class CoM:
 class Energy:
     kinetic: ArrayLike
     potential: ArrayLike
+
+
+class BodyBase(ABC):
+    @property
+    @abstractmethod
+    def backend(self):
+        pass
+
+    @property
+    @abstractmethod
+    def contact(self):
+        pass
+
+    @property
+    @abstractmethod
+    def position(self):
+        pass
+
+    @property
+    @abstractmethod
+    def rotation(self):
+        pass
+
+    @property
+    @abstractmethod
+    def quaternion(self):
+        pass
+
+    @property
+    @abstractmethod
+    def jacobian(self):
+        pass
+
+    @property
+    @abstractmethod
+    def jacobian_dt(self):
+        pass
+
+    @property
+    @abstractmethod
+    def linear_velocity(self):
+        pass
+
+    @property
+    @abstractmethod
+    def angular_velocity(self):
+        pass
+
+    @property
+    @abstractmethod
+    def linear_acceleration(self):
+        pass
+
+    @property
+    @abstractmethod
+    def angular_acceleration(self):
+        pass
+
+    @abstractmethod
+    def update(self):
+        pass
+
+    @abstractmethod
+    def add_contact(self, contact_type="point", frame=Frame.LOCAL_WORLD_ALIGNED):
+        pass
 
 
 class ModelBase(ABC):
@@ -49,7 +113,7 @@ class ModelBase(ABC):
 
     @property
     @abstractmethod
-    def bodies(self) -> Dict[str, Body]:
+    def bodies(self) -> Dict[str, BodyBase]:
         pass
 
     @property
@@ -185,5 +249,5 @@ class ModelBase(ABC):
         ...
 
     @abstractmethod
-    def body(self, name: str) -> Body:
+    def body(self, name: str) -> BodyBase:
         ...

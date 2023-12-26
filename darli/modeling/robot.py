@@ -4,8 +4,8 @@ from darli.backend import BackendBase, CasadiBackend
 from darli.arrays import ArrayLike
 import numpy as np
 
+from .base import Energy, CoM, ModelBase, BodyBase
 from .body import Body
-from .base import Energy, CoM, ModelBase
 from .state_space import StateSpace
 
 
@@ -23,7 +23,7 @@ class Robot(ModelBase):
         # force applied to actuators, i.e. selector @ qfrc_u
         self._u = self._backend._tau
 
-        self.__bodies: Dict[str, Body] = dict()
+        self.__bodies: Dict[str, BodyBase] = dict()
         self.update_selector()
 
         self.__state_space = StateSpace(self)
@@ -81,27 +81,27 @@ class Robot(ModelBase):
     #     return self._backend.nu
 
     @property
-    def bodies(self) -> Dict[str, Body]:
+    def bodies(self) -> Dict[str, BodyBase]:
         return self.__bodies
 
-    def add_body(self, bodies_names: List[str] | Dict[str, str]):
+    def add_body(self, bodies_names: List[str] | Dict[str, str], constructor=Body):
         if not bodies_names or len(bodies_names) == 0:
             return
 
         if isinstance(bodies_names, dict):
             for body_pairs in bodies_names.items():
-                body = Body(name=dict([body_pairs]), backend=self._backend)
+                body = constructor(name=dict([body_pairs]), backend=self._backend)
                 self.__bodies[body_pairs[0]] = body
         elif isinstance(bodies_names, list):
             for body_name in bodies_names:
-                body = Body(name=body_name, backend=self._backend)
+                body = constructor(name=body_name, backend=self._backend)
                 self.__bodies[body_name] = body
         else:
             raise TypeError(
                 f"unknown type of mapping is passed to add bodies: {type(bodies_names)}"
             )
 
-    def body(self, name: str) -> Body:
+    def body(self, name: str) -> BodyBase:
         assert name in self.__bodies, f"Body {name} is not added"
 
         return self.__bodies[name]

@@ -2,8 +2,9 @@ from darli.backend import BackendBase, CasadiBackend
 from darli.arrays import ArrayLike
 import casadi as cs
 
-from .base import Energy, CoM, Body
+from .base import Energy, CoM
 from .robot import Robot, ModelBase
+from .body import Body, SymbolicBody
 
 from typing import List, Dict
 
@@ -70,7 +71,7 @@ class Symbolic(ModelBase):
         return self.__robot.bodies
 
     def add_body(self, bodies_names: List[str] | Dict[str, str]):
-        return self.__robot.add_body(bodies_names)
+        return self.__robot.add_body(bodies_names, SymbolicBody)
 
     def body(self, name: str) -> Body:
         return self.__robot.body(name)
