@@ -20,6 +20,61 @@ class Energy:
     potential: ArrayLike
 
 
+class ContactBase(ABC):
+    @property
+    @abstractmethod
+    def dim(self):
+        pass
+
+    @property
+    @abstractmethod
+    def backend(self) -> BackendBase:
+        pass
+
+    @property
+    @abstractmethod
+    def name(self):
+        pass
+
+    @property
+    @abstractmethod
+    def ref_frame(self):
+        pass
+
+    @abstractmethod
+    def update(self):
+        pass
+
+    @property
+    @abstractmethod
+    def jacobian(self):
+        pass
+
+    @property
+    @abstractmethod
+    def force(self):
+        pass
+
+    @force.setter
+    @abstractmethod
+    def force(self, value):
+        pass
+
+    @property
+    @abstractmethod
+    def qforce(self):
+        pass
+
+    @property
+    @abstractmethod
+    def cone(self):
+        pass
+
+    @abstractmethod
+    def add_cone(self, mu, X=None, Y=None):
+        pass
+
+
 class BodyBase(ABC):
     @property
     @abstractmethod

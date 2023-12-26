@@ -1,7 +1,8 @@
 from ..backend import BackendBase, Frame, CasadiBackend, ConeBase, CasadiCone
+from .base import ContactBase
 
 
-class Contact:
+class Contact(ContactBase):
     def __init__(self, name: str, backend: BackendBase, frame: Frame, type="point"):
         self.__name = name
         self.__backend: BackendBase = backend
@@ -9,9 +10,9 @@ class Contact:
         self.__type = type
 
         if self.__type == "point":
-            self.dim = 3
+            self.__dim = 3
         elif self.__type == "wrench":
-            self.dim = 6
+            self.__dim = 6
         else:
             raise ValueError(f"Unknown contact type: {self.__type}")
 
@@ -33,6 +34,14 @@ class Contact:
         self.__contact_qforce = self.__jacobian @ self.__force
 
         self.__cone = None
+
+    @property
+    def dim(self) -> int:
+        return self.__dim
+
+    @property
+    def backend(self) -> BackendBase:
+        return self.__backend
 
     @property
     def name(self):

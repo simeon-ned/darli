@@ -2,14 +2,16 @@ from darli.backend import BackendBase, CasadiBackend
 from darli.arrays import ArrayLike
 import casadi as cs
 
-from .base import Energy, CoM
-from .robot import Robot, ModelBase
-from .body import Body, SymbolicBody
+from ..base import Energy, CoM
+from ..robot import Robot, ModelBase
+
+from .body import FunctionalBody
+from ..body import Body
 
 from typing import List, Dict
 
 
-class Symbolic(ModelBase):
+class Functional(ModelBase):
     def __init__(self, backend: BackendBase):
         assert isinstance(
             backend, CasadiBackend
@@ -67,14 +69,15 @@ class Symbolic(ModelBase):
         return self.__robot.backend.joint_names
 
     @property
-    def bodies(self) -> Dict[str, Body]:
+    def bodies(self) -> Dict[str, FunctionalBody]:
+        # TODO: probably we should map each element to FunctionalBody too
         return self.__robot.bodies
 
     def add_body(self, bodies_names: List[str] | Dict[str, str]):
-        return self.__robot.add_body(bodies_names, SymbolicBody)
+        return self.__robot.add_body(bodies_names, Body)
 
-    def body(self, name: str) -> Body:
-        return self.__robot.body(name)
+    def body(self, name: str) -> FunctionalBody:
+        return FunctionalBody.from_body(self.__robot.body(name))
 
     @property
     def state_space(self):

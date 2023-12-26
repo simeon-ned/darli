@@ -1,16 +1,16 @@
-from .modeling import Robot, Parametric, Symbolic
+from .modeling import Robot, Parametric, Functional
 from .backend import CasadiBackend, PinocchioBackend, Frame
 
 
 def biped(
-    constructor: Robot | Parametric | Symbolic,
+    constructor: Robot | Parametric | Functional,
     backend: CasadiBackend | PinocchioBackend,
     urdf_path,
     torso=None,
     foots=None,
     arms=None,
     reference=Frame.LOCAL_WORLD_ALIGNED,
-) -> Robot | Parametric | Symbolic:
+) -> Robot | Parametric | Functional:
     bodies_names = {}
 
     if torso is not None:
@@ -25,7 +25,7 @@ def biped(
     if foots is not None:
         bodies_names.update(foots)
 
-    cls: Robot | Parametric | Symbolic = constructor(backend(urdf_path))
+    cls: Robot | Parametric | Functional = constructor(backend(urdf_path))
     cls.add_body(bodies_names)
 
     for foot in foots.keys():
@@ -43,7 +43,7 @@ def quadruped(
     foots=None,
     arms=None,
     reference=Frame.LOCAL_WORLD_ALIGNED,
-) -> Robot | Parametric | Symbolic:
+) -> Robot | Parametric | Functional:
     bodies_names = {}
 
     if torso is not None:
@@ -58,7 +58,7 @@ def quadruped(
     if foots is not None:
         bodies_names.update(foots)
 
-    cls: Robot | Parametric | Symbolic = constructor(backend(urdf_path))
+    cls: Robot | Parametric | Functional = constructor(backend(urdf_path))
     cls.add_body(bodies_names)
 
     for foot in foots.keys():
@@ -76,7 +76,7 @@ def manipulator(
     foots=None,
     arms=None,
     reference=Frame.WORLD,
-) -> Robot | Parametric | Symbolic:
+) -> Robot | Parametric | Functional:
     bodies_names = {}
 
     if torso is not None:
@@ -91,7 +91,7 @@ def manipulator(
     if foots is not None:
         bodies_names.update(foots)
 
-    cls: Robot | Parametric | Symbolic = constructor(backend(urdf_path))
+    cls: Robot | Parametric | Functional = constructor(backend(urdf_path))
     cls.add_body(bodies_names)
 
     for foot in foots.keys():
