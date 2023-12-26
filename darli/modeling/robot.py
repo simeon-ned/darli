@@ -6,7 +6,7 @@ import numpy as np
 
 from .base import Energy, CoM, ModelBase, BodyBase
 from .body import Body
-from .state_space import StateSpace
+from .state_space import StateSpace, CasadiStateSpace
 
 
 class Robot(ModelBase):
@@ -26,7 +26,10 @@ class Robot(ModelBase):
         self.__bodies: Dict[str, BodyBase] = dict()
         self.update_selector()
 
-        self.__state_space = StateSpace(self)
+        if isinstance(self.backend, CasadiBackend):
+            self.__state_space = CasadiStateSpace(self)
+        else:
+            self.__state_space = StateSpace(self)
 
     @property
     def q(self) -> ArrayLike:

@@ -1,8 +1,8 @@
-from .base import ModelBase
-from ..backend import CasadiBackend
+from ..base import ModelBase
+from ...backend import CasadiBackend
 import casadi as cs
 from typing import Dict
-from ..arrays import ArrayLike
+from ...arrays import ArrayLike
 
 
 class StateSpace:
@@ -10,6 +10,14 @@ class StateSpace:
         self.__model = model
 
         self.__force_jacobians: Dict[str, ArrayLike] = {}
+
+    @property
+    def model(self):
+        return self.__model
+
+    @property
+    def force_jacobians(self):
+        return self.__force_jacobians
 
     @property
     def state(self):
@@ -35,6 +43,7 @@ class StateSpace:
 
     @property
     def state_jacobian(self):
+        raise NotImplementedError
         # ensure we use casadi backend
         assert isinstance(
             self.__model.backend, CasadiBackend
@@ -44,6 +53,7 @@ class StateSpace:
 
     @property
     def input_jacobian(self):
+        raise NotImplementedError
         # ensure we use casadi backend
         assert isinstance(
             self.__model.backend, CasadiBackend
@@ -52,6 +62,7 @@ class StateSpace:
         return cs.jacobian(self.state_derivative, self.__model.qfrc_u)
 
     def force_jacobian(self, body_name: str) -> cs.Function:
+        raise NotImplementedError
         # ensure we use casadi backend
         assert isinstance(
             self.__model.backend, CasadiBackend
