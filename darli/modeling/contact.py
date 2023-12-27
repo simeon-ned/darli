@@ -1,4 +1,11 @@
-from ..backend import BackendBase, Frame, CasadiBackend, ConeBase, CasadiCone
+from ..backend import (
+    BackendBase,
+    Frame,
+    CasadiBackend,
+    ConeBase,
+    CasadiCone,
+    PinocchioCone,
+)
 from .base import ContactBase
 
 
@@ -91,4 +98,7 @@ class Contact(ContactBase):
         """
         add_cone adds a cone constraint to the contact
         """
-        self.__cone = CasadiCone(self.__force, mu, self.__type, X, Y)
+        if isinstance(self.__backend, CasadiBackend):
+            self.__cone = CasadiCone(self.__force, mu, self.__type, X, Y)
+        else:
+            self.__cone = PinocchioCone(self.__force, mu, self.__type, X, Y)

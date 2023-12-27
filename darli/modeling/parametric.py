@@ -95,7 +95,9 @@ class Parametric(ModelBase):
             unit_vector = unit_vectors[i, :]
             inertia[:, i] = (
                 self._backend.torque_regressor(
-                    self._q, self._backend.math.zeros(self.nv).array, unit_vector
+                    q if q is not None else self._q,
+                    self._backend.math.zeros(self.nv).array,
+                    unit_vector,
                 )
                 @ self._parameters
             )

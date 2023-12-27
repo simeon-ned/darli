@@ -83,7 +83,7 @@ class BodyBase(ABC):
 
     @property
     @abstractmethod
-    def contact(self):
+    def contact(self) -> ContactBase:
         pass
 
     @property
@@ -306,3 +306,39 @@ class ModelBase(ABC):
     @abstractmethod
     def body(self, name: str) -> BodyBase:
         ...
+
+
+class StateSpaceBase(ABC):
+    @property
+    @abstractmethod
+    def model(self):
+        pass
+
+    @property
+    @abstractmethod
+    def force_jacobians(self):
+        pass
+
+    @property
+    @abstractmethod
+    def state(self):
+        pass
+
+    @property
+    @abstractmethod
+    def state_derivative(self):
+        pass
+
+    @property
+    @abstractmethod
+    def state_jacobian(self):
+        pass
+
+    @property
+    @abstractmethod
+    def input_jacobian(self):
+        pass
+
+    @abstractmethod
+    def force_jacobian(self, body_name: str):
+        pass

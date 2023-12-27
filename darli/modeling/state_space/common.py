@@ -1,11 +1,11 @@
-from ..base import ModelBase
+from ..base import ModelBase, StateSpaceBase
 from ...backend import CasadiBackend
 import casadi as cs
 from typing import Dict
 from ...arrays import ArrayLike
 
 
-class StateSpace:
+class StateSpace(StateSpaceBase):
     def __init__(self, model: ModelBase) -> None:
         self.__model = model
 
@@ -35,8 +35,8 @@ class StateSpace:
             self.__model.nq + self.__model.nv
         ).array
         container[: self.__model.nq] = self.__model.v
-        container[self.__model.nq :] = self.__model.inverse_dynamics(
-            self.__model.q, self.__model.v, self.__model.dv
+        container[self.__model.nq :] = self.__model.forward_dynamics(
+            self.__model.q, self.__model.v, self.__model.qfrc_u
         )
 
         return container

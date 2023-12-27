@@ -5,6 +5,7 @@ import casadi as cs
 from ..base import Energy, CoM
 from ..robot import Robot, ModelBase
 
+from .state_space import FunctionalStateSpace
 from .body import FunctionalBody
 from ..body import Body
 
@@ -81,7 +82,7 @@ class Functional(ModelBase):
 
     @property
     def state_space(self):
-        return self.__robot.state_space
+        return FunctionalStateSpace.from_space(self.__robot.state_space)
 
     @property
     def selector(self):
