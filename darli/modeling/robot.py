@@ -326,4 +326,4 @@ class Robot(ModelBase):
         if isinstance(self.backend, CasadiBackend):
             self._qfrc_u = self.backend.math.array("tau", self.nu).array
         else:
-            self._qfrc_u = self.backend.math.zeros(self.nu)
+            self._qfrc_u = self.backend.math.zeros(self.nu).array

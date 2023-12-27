@@ -8,8 +8,6 @@ class PinocchioStateSpace(StateSpace):
     def __init__(self, model: ModelBase) -> None:
         super().__init__(model)
 
-        assert isinstance(model.backend, CasadiBackend), "This is Casadi-only class"
-
     @property
     def state_jacobian(self):
         # FIXME: separate implementation
