@@ -41,6 +41,51 @@ class TestRobot(unittest.TestCase):
 
         self.assertTrue(np.allclose(jac - jac_funct, 0))
 
+    def test_energy(self):
+        q = np.random.randn(self.robot.nq)
+        dq = np.random.randn(self.robot.nv)
+
+        # kinetic energy test
+        kin = self.robot.energy(q, dq).kinetic
+        kin_funct = self.funct.energy.kinetic(q, dq)
+
+        self.assertTrue(np.allclose(kin - kin_funct, 0))
+
+        # potential energy test
+        pot = self.robot.energy(q).potential
+        pot_funct = self.funct.energy.potential(q)
+
+        self.assertTrue(np.allclose(pot - pot_funct, 0))
+
+    def inertia(self):
+        q = np.random.randn(self.robot.nq)
+
+        # inertia test
+        M = self.robot.inertia(q)
+        M_funct = self.funct.inertia(q)
+
+        self.assertTrue(np.allclose(M - M_funct, 0))
+
+    def test_coriolis(self):
+        q = np.random.randn(self.robot.nq)
+        dq = np.random.randn(self.robot.nv)
+
+        # coriolis test
+        C = self.robot.coriolis(q, dq)
+        C_funct = self.funct.coriolis(q, dq)
+
+        self.assertTrue(np.allclose(C - C_funct, 0))
+
+    def test_bias_force(self):
+        q = np.random.randn(self.robot.nq)
+        dq = np.random.randn(self.robot.nv)
+
+        # bias force test
+        b = self.robot.bias_force(q, dq)
+        b_funct = self.funct.bias_force(q, dq)
+
+        self.assertTrue(np.allclose(b - b_funct, 0))
+
 
 if __name__ == "__main__":
     unittest.main()

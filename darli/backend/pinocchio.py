@@ -182,6 +182,8 @@ class PinocchioBackend(BackendBase):
             self._dv = pin.aba(self.__model, self.__data, self._q, self._v, self._tau)
 
         pin.computeAllTerms(self.__model, self.__data, self._q, self._v)
+        pin.centerOfMass(self.__model, self.__data, self._q, self._v, self._dv)
+        pin.jacobianCenterOfMass(self.__model, self.__data, self._q)
 
     def rnea(
         self,
@@ -243,15 +245,12 @@ class PinocchioBackend(BackendBase):
             return self.__data.Jcom
 
         self._q = q
-        pin.computeAllTerms(self.__model, self.__data, q, self._v)
+        pin.jacobianCenterOfMass(self.__model, self.__data, self._q)
         return self.__data.Jcom
 
     def jacobian_dt(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        # raise NotImplementedError(
-        #     "time variation of CoM jacobian is not implemented for pinocchio backend"
-        # )
         warnings.warn(
             "time variation of CoM jacobian is not implemented for pinocchio backend"
         )
@@ -261,9 +260,8 @@ class PinocchioBackend(BackendBase):
         if q is None:
             return self.__data.com[0]
 
-        self._q = q if q is not None else self._q
+        self._q = q
         pin.centerOfMass(self.__model, self.__data, self._q, self._v, self._dv)
-        # pin.computeAllTerms(self.__model, self.__data, q, self._v)
         return self.__data.com[0]
 
     def com_vel(
@@ -275,7 +273,6 @@ class PinocchioBackend(BackendBase):
         self._q = q if q is not None else self._q
         self._v = v if v is not None else self._v
         pin.centerOfMass(self.__model, self.__data, self._q, self._v, self._dv)
-        # pin.computeAllTerms(self.__model, self.__data, q, v)
         return self.__data.vcom[0]
 
     def com_acc(
@@ -291,7 +288,6 @@ class PinocchioBackend(BackendBase):
         self._v = v if v is not None else self._v
         self._dv = dv if dv is not None else self._dv
         pin.centerOfMass(self.__model, self.__data, self._q, self._v, self._dv)
-        # pin.computeAllTerms(self.__model, self.__data, self._q, self._v)
         return self.__data.acom[0]
 
     def torque_regressor(
