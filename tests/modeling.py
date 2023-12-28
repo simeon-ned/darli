@@ -86,6 +86,26 @@ class TestRobot(unittest.TestCase):
 
         self.assertTrue(np.allclose(b - b_funct, 0))
 
+    def test_dynamics(self):
+        q = np.random.randn(self.robot.nq)
+        v = np.random.randn(self.robot.nv)
+        dv = np.random.randn(self.robot.nv)
+
+        # inverse dynamics
+        tau = self.robot.inverse_dynamics(q, v, dv)
+        tau_funct = self.funct.inverse_dynamics(q, v, dv)
+
+        self.assertTrue(np.allclose(tau - tau_funct, 0))
+
+        # forward dynamics
+        tdv = self.robot.forward_dynamics(q, v, tau)
+        tdv_funct = self.funct.forward_dynamics(q, v, tau)
+
+        self.assertTrue(np.allclose(tdv - tdv_funct, 0))
+
+        # test that dv originally matches tdv
+        self.assertTrue(np.allclose(dv - tdv, 0))
+
 
 if __name__ == "__main__":
     unittest.main()
