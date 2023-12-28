@@ -21,6 +21,10 @@ class Functional(ModelBase):
 
         self.__robot = Robot(backend)
 
+        # instances we want to cache
+        self.__com = None
+        self.__energy = None
+
     @property
     def q(self) -> ArrayLike:
         return self.__robot.q
@@ -118,9 +122,12 @@ class Functional(ModelBase):
 
     @property
     def com(self) -> CoM:
+        if self.__com is not None:
+            return self.__com
+
         supercom = self.__robot.com(self.q, self.v, self.dv)
 
-        return CoM(
+        self.__com = CoM(
             position=cs.Function(
                 "com_position",
                 [self.q],
@@ -157,12 +164,16 @@ class Functional(ModelBase):
                 ["com_jacobian_dt"],
             ),
         )
+        return self.__com
 
     @property
     def energy(self) -> Energy:
+        if self.__energy is not None:
+            return self.__energy
+
         superenergy = self.__robot.energy(self.q, self.v)
 
-        return Energy(
+        self.__energy = Energy(
             kinetic=cs.Function(
                 "kinetic_energy",
                 [self.q, self.v],
@@ -178,6 +189,7 @@ class Functional(ModelBase):
                 ["potential_energy"],
             ),
         )
+        return self.__energy
 
     @property
     def inertia(self) -> ArrayLike:
