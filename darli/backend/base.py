@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Dict, List
 from ..arrays import ArrayLike, ArrayLikeFactory
 import pinocchio as pin
+import numpy as np
 
 
 class Frame(Enum):
@@ -76,6 +77,14 @@ class PinocchioBased:
 
     def joint_id(self, name: str) -> int:
         return self._pinmodel.getJointId(name)
+
+    def base_parameters(self) -> ArrayLike:
+        params = []
+
+        for i in range(len(self._pinmodel.inertias) - 1):
+            params.extend(self._pinmodel.inertias[i + 1].toDynamicParameters())
+
+        return np.array(params)
 
 
 class BackendBase(ABC, PinocchioBased):

@@ -310,7 +310,7 @@ class PinocchioBackend(BackendBase):
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
     ) -> ArrayLike:
-        if q if not None or v is not None:
+        if q is not None or v is not None:
             self._q = q if q is not None else self._q
             self._v = v if v is not None else self._v
             pin.computeAllTerms(self.__model, self.__data, q, v)

@@ -206,12 +206,37 @@ class Parametric(ModelBase):
     def coriolis(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        pass
+        tau_grav = (
+            self._backend.torque_regressor(
+                q if q is not None else self._q,
+                self._backend.math.zeros(self._backend.nv).array,
+                self._backend.math.zeros(self._backend.nv).array,
+            )
+            @ self._parameters
+        )
+
+        tau_bias = (
+            self._backend.torque_regressor(
+                q if q is not None else self._q,
+                v if v is not None else self._v,
+                self._backend.math.zeros(self._backend.nv).array,
+            )
+            @ self._parameters
+        )
+
+        return tau_grav - tau_bias
 
     def bias_force(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        pass
+        return (
+            self._backend.torque_regressor(
+                q if q is not None else self._q,
+                v if v is not None else self._v,
+                self._backend.math.zeros(self._backend.nv).array,
+            )
+            @ self._parameters
+        )
 
     def momentum(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
@@ -271,7 +296,10 @@ class Parametric(ModelBase):
         v: ArrayLike | None = None,
         tau: ArrayLike | None = None,
     ) -> ArrayLike:
-        pass
+        return self._backend.math.solve(
+            self.inertia(q),
+            -self.bias_force(q, v) + (tau if tau is not None else self.qfrc_u),
+        ).array
 
     @property
     def state_space(self):
