@@ -2,8 +2,8 @@ from typing import List, Dict
 
 from darli.backend import BackendBase, CasadiBackend
 from darli.arrays import ArrayLike
-from .body import Body
-from .base import Energy, CoM, ModelBase, BodyBase
+from ..body import Body
+from ..base import Energy, CoM, ModelBase, BodyBase
 import numpy as np
 
 
@@ -29,6 +29,10 @@ class Parametric(ModelBase):
 
         self.__bodies: Dict[str, BodyBase] = dict()
         self.update_selector()
+
+    @property
+    def parameters(self) -> ArrayLike:
+        return self._parameters
 
     @property
     def q(self) -> ArrayLike:
