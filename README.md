@@ -82,12 +82,15 @@ There are also banch of modules that facilitates work with given type of robots,
 The minimal example of using library:
 
 ```python
-from darli.robots import RobotModel
+from darli.backend import CasadiBackend
+from darli.modeling import Robot
 import numpy as np
 import casadi as cs
+from robot_descriptions import z1_description
+
 # Initializing the RobotModel class
-model = RobotModel('PATH_TO_URDF_FILE.urdf',
-                    bodies_names{'end_effector': 'last_link_urdf'})
+model = Robot(CasadiBackend(z1_description.URDF_PATH))
+model.add_body({"end_effector": "link06"})
 
 # Dynamics calculations
 inertia = model.inertia
@@ -95,37 +98,44 @@ gravity_vector = model.gravity
 coriolis = model.coriolis
 
 # calling with CasAdi arguments
-gravity_vector(cs.SX.sym('q', nq))
+gravity_vector(cs.SX.sym("q", model.nq))
 # calling with numpy arguments
-gravity_vector(np.random.randn(nq))
+gravity_vector(np.random.randn(model.nq))
 
 nq = model.nq
 # Body kinematics
-model.body('end_effector').position
+model.body("end_effector").position
 # Differential kinematics
-model.body('end_effector').angular_velocity().local
+model.body("end_effector").angular_velocity.local
 # Adding contacts
-model.body('end_effector').add_contact('wrench')
+model.body("end_effector").add_contact("wrench")
+
 ```
 
 One may also use the prebuilded templates for some common robotics structures, i.e:
 
 ```python
-from darli.robots import Biped, Manipulator, Quadruped
+from darli.robots import biped
+
 # Example for the bipedal robot
 # foots are subject to wrench contact
-biped_urdf = 'PATH_TO_BIPED_URDF.urdf'
-biped_model = Biped(biped_urdf,
-                    torso = {'torso': 'pelvis'},
-                    foots = {'left_foot': 'footLeftY',
-                            'right_foot': 'footRightY'},
-                    arms = {'left_arm': 'wristRollLeft',
-                           'right_arm': 'wristRollRight'})
+from robot_descriptions import atlas_v4_description
 
-model.forward_dynamics
-model.body('torso').position
-model.body('torso').linear_velocity.world_aligned
-model.body('left_foot').contact
+biped_model = biped(
+    Functional,
+    CasadiBackend,
+    atlas_v4_description.URDF_PATH,
+    torso={"torso": "pelvis"},
+    foots={
+        "left_foot": "l_foot",
+        "right_foot": "r_foot",
+    },
+)
+
+biped_model.forward_dynamics
+biped_model.body('torso').position
+biped_model.body('torso').linear_velocity.world_aligned
+biped_model.body('left_foot').contact
 ```
 
 Please refer to dedicated example in `~/examples/01_models_and_robots` to learn other capabilities of the library

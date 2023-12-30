@@ -1,97 +1,101 @@
-# from ._template import RobotModel
-from .models import RobotModel
+from .modeling import Robot, Parametric, Functional
+from .backend import CasadiBackend, PinocchioBackend, Frame
 
 
-class Biped(RobotModel):
-    def __init__(
-        self,
-        urdf_path,
-        torso=None,
-        foots=None,
-        arms=None,
-        reference="world_aligned",
-        calculate=True,
-    ):
-        bodies_names = {}
+def biped(
+    constructor: Robot | Parametric | Functional,
+    backend: CasadiBackend | PinocchioBackend,
+    urdf_path,
+    torso=None,
+    foots=None,
+    arms=None,
+    reference=Frame.LOCAL_WORLD_ALIGNED,
+) -> Robot | Parametric | Functional:
+    bodies_names = {}
 
-        if torso is not None:
-            if isinstance(torso, str):
-                bodies_names.update([torso])
-            else:
-                bodies_names.update(torso)
+    if torso is not None:
+        if isinstance(torso, str):
+            bodies_names.update([torso])
+        else:
+            bodies_names.update(torso)
 
-        if arms is not None:
-            bodies_names.update(arms)
+    if arms is not None:
+        bodies_names.update(arms)
 
-        if foots is not None:
-            bodies_names.update(foots)
-        # print(bodies_names)
-        super().__init__(urdf_path, bodies_names=bodies_names, calculate=False)
+    if foots is not None:
+        bodies_names.update(foots)
 
-        for foot in foots.keys():
-            body = self.body(foot)
-            body.add_contact(frame=reference, contact_type="wrench")
+    cls: Robot | Parametric | Functional = constructor(backend(urdf_path))
+    cls.add_body(bodies_names)
 
-        self.set_selector(passive_joints=range(6), calculate=True)
+    for foot in foots.keys():
+        body = cls.body(foot)
+        body.add_contact(frame=reference, contact_type="wrench")
 
-        # self.update_model()
+    return cls
 
 
-class Quadruped(RobotModel):
-    def __init__(
-        self,
-        urdf_path,
-        torso=None,
-        foots=None,
-        arm=None,
-        reference="world_aligned",
-        calculate=True,
-    ):
-        bodies_names = {}
+def quadruped(
+    constructor,
+    backend,
+    urdf_path,
+    torso=None,
+    foots=None,
+    arms=None,
+    reference=Frame.LOCAL_WORLD_ALIGNED,
+) -> Robot | Parametric | Functional:
+    bodies_names = {}
 
-        if torso is not None:
-            if isinstance(torso, str):
-                bodies_names.update([torso])
-            else:
-                bodies_names.update(torso)
+    if torso is not None:
+        if isinstance(torso, str):
+            bodies_names.update([torso])
+        else:
+            bodies_names.update(torso)
 
-        if arm is not None:
-            if isinstance(arm, str):
-                bodies_names.update([arm])
-            else:
-                bodies_names.update(arm)
+    if arms is not None:
+        bodies_names.update(arms)
 
-        if foots is not None:
-            bodies_names.update(foots)
-            # foot_bodies.update({})
+    if foots is not None:
+        bodies_names.update(foots)
 
-        super().__init__(urdf_path, bodies_names=bodies_names, calculate=False)
+    cls: Robot | Parametric | Functional = constructor(backend(urdf_path))
+    cls.add_body(bodies_names)
 
-        for foot in foots.keys():
-            body = self.body(foot)
-            body.add_contact(frame=reference, contact_type="point")
+    for foot in foots.keys():
+        body = cls.body(foot)
+        body.add_contact(frame=reference, contact_type="wrench")
 
-        self.set_selector(passive_joints=range(6), calculate=True)
+    return cls
 
 
-class Manipulator(RobotModel):
-    def __init__(self, urdf_path, end_effector=None, reference="world", calculate=True):
-        bodies_names = {}
+def manipulator(
+    constructor,
+    backend,
+    urdf_path,
+    torso=None,
+    foots=None,
+    arms=None,
+    reference=Frame.WORLD,
+) -> Robot | Parametric | Functional:
+    bodies_names = {}
 
-        if end_effector is not None:
-            if isinstance(end_effector, str):
-                bodies_names.update([end_effector])
+    if torso is not None:
+        if isinstance(torso, str):
+            bodies_names.update([torso])
+        else:
+            bodies_names.update(torso)
 
-            else:
-                bodies_names.update(end_effector)
+    if arms is not None:
+        bodies_names.update(arms)
 
-        super().__init__(urdf_path, bodies_names=bodies_names, calculate=False)
+    if foots is not None:
+        bodies_names.update(foots)
 
-        for body in self.bodies.values():
-            # body.update()
+    cls: Robot | Parametric | Functional = constructor(backend(urdf_path))
+    cls.add_body(bodies_names)
 
-            body.add_contact(frame=reference, contact_type="wrench")
-            # print(body)
-        self.update_model()
-        # self.
-        # self.upd
+    for foot in foots.keys():
+        body = cls.body(foot)
+        body.add_contact(frame=reference, contact_type="wrench")
+
+    return cls
