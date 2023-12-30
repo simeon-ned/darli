@@ -78,10 +78,6 @@ class Parametric(ModelBase):
     def joint_names(self) -> List[str]:
         return self._backend.joint_names
 
-    # @property
-    # def nu(self) -> int:
-    #     return self._backend.nu
-
     @property
     def bodies(self) -> Dict[str, BodyBase]:
         return self.__bodies

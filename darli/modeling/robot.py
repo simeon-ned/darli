@@ -79,10 +79,6 @@ class Robot(ModelBase):
     def joint_names(self) -> List[str]:
         return self._backend.joint_names
 
-    # @property
-    # def nu(self) -> int:
-    #     return self._backend.nu
-
     @property
     def bodies(self) -> Dict[str, BodyBase]:
         return self.__bodies
@@ -211,9 +207,6 @@ class Robot(ModelBase):
     def lagrangian(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        # en = self.energy(q if q else self._q, v if v else self._v)
-        # return en.kinetic - en.potential
-
         return self._backend.kinetic_energy(
             q if q is not None else self._q,
             v if v is not None else self._v,
