@@ -75,6 +75,13 @@ class ContactBase(ABC):
         pass
 
 
+@dataclass
+class FrameQuantity:
+    local: ArrayLike
+    world: ArrayLike
+    world_aligned: ArrayLike
+
+
 class BodyBase(ABC):
     @property
     @abstractmethod
@@ -103,32 +110,32 @@ class BodyBase(ABC):
 
     @property
     @abstractmethod
-    def jacobian(self):
+    def jacobian(self) -> FrameQuantity:
         pass
 
     @property
     @abstractmethod
-    def jacobian_dt(self):
+    def jacobian_dt(self) -> FrameQuantity:
         pass
 
     @property
     @abstractmethod
-    def linear_velocity(self):
+    def linear_velocity(self) -> FrameQuantity:
         pass
 
     @property
     @abstractmethod
-    def angular_velocity(self):
+    def angular_velocity(self) -> FrameQuantity:
         pass
 
     @property
     @abstractmethod
-    def linear_acceleration(self):
+    def linear_acceleration(self) -> FrameQuantity:
         pass
 
     @property
     @abstractmethod
-    def angular_acceleration(self):
+    def angular_acceleration(self) -> FrameQuantity:
         pass
 
     @abstractmethod

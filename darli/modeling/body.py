@@ -2,14 +2,7 @@ from dataclasses import dataclass
 from ..arrays import ArrayLike
 from ..backend import BackendBase, BodyInfo, Frame
 from .contact import Contact
-from .base import BodyBase
-
-
-@dataclass
-class FrameQuantity:
-    local: ArrayLike
-    world: ArrayLike
-    world_aligned: ArrayLike
+from .base import BodyBase, FrameQuantity
 
 
 class Body(BodyBase):
@@ -125,7 +118,9 @@ class Body(BodyBase):
         if self.__contact_type is not None:
             self.add_contact(self.__contact_type)
 
-    def add_contact(self, contact_type="point", frame=Frame.LOCAL_WORLD_ALIGNED, constructor=Contact):
+    def add_contact(
+        self, contact_type="point", frame=Frame.LOCAL_WORLD_ALIGNED, constructor=Contact
+    ):
         self.__contact_type = contact_type
         self.__contact = constructor(
             self.urdf_name,
