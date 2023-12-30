@@ -176,7 +176,6 @@ class BackendBase(ABC, PinocchioBased):
         self,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
-        dv: ArrayLike | None = None,
     ) -> ArrayLike:
         pass
 
@@ -184,8 +183,6 @@ class BackendBase(ABC, PinocchioBased):
     def potential_regressor(
         self,
         q: ArrayLike | None = None,
-        v: ArrayLike | None = None,
-        dv: ArrayLike | None = None,
     ) -> ArrayLike:
         pass
 

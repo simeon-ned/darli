@@ -168,10 +168,40 @@ class Parametric(ModelBase):
         v: ArrayLike | None = None,
         dv: ArrayLike | None = None,
     ) -> CoM:
-        pass
+        return CoM(
+            position=self._backend.com_pos(
+                q if q is not None else self._q,
+            ),
+            velocity=self._backend.com_vel(
+                q if q is not None else self._q,
+                v if v is not None else self._v,
+            ),
+            acceleration=self._backend.com_acc(
+                q if q is not None else self._q,
+                v if v is not None else self._v,
+                dv if dv is not None else self._dv,
+            ),
+            jacobian=self._backend.jacobian(
+                q if q is not None else self._q,
+            ),
+            jacobian_dt=self._backend.jacobian_dt(
+                q if q is not None else self._q,
+                v if v is not None else self._v,
+            ),
+        )
 
     def energy(self, q: ArrayLike | None = None, v: ArrayLike | None = None) -> Energy:
-        pass
+        return Energy(
+            kinetic=self._backend.kinetic_regressor(
+                q if q is not None else self._q,
+                v if v is not None else self._v,
+            )
+            @ self._parameters,
+            potential=self._backend.potential_energy(
+                q if q is not None else self._q,
+            )
+            @ self._parameters,
+        )
 
     def coriolis(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
@@ -191,7 +221,17 @@ class Parametric(ModelBase):
     def lagrangian(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        pass
+        return (
+            self._backend.kinetic_regressor(
+                q if q is not None else self._q,
+                v if v is not None else self._v,
+            )
+            @ self._parameters
+            - self._backend.potential_energy(
+                q if q is not None else self._q,
+            )
+            @ self._parameters
+        )
 
     @property
     def contact_forces(self) -> List[ArrayLike]:
