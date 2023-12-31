@@ -293,19 +293,15 @@ class CasadiBackend(BackendBase):
         return self.__kindyn.kineticEnergyRegressor()(
             q=q if q is not None else self._q,
             v=v if v is not None else self._v,
-        )["kinetic_regressor"] # .flatten()
+        )["kinetic_regressor"]
 
     def potential_regressor(
         self,
         q: ArrayLike | None = None,
-        # v: ArrayLike | None = None,
-        # dv: ArrayLike | None = None,
     ) -> ArrayLike:
         return self.__kindyn.potentialEnergyRegressor()(
             q=q if q is not None else self._q,
-            # v=v if v is not None else self._v,
-            # a=dv if dv is not None else self._dv,
-        )["potential_regressor"] # .flatten()
+        )["potential_regressor"]
 
     def update_body(self, body: str, body_urdf_name: str = None) -> BodyInfo:
         if body_urdf_name is None:

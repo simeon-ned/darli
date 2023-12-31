@@ -26,6 +26,10 @@ class Functional(ModelBase):
         self.__energy = None
 
     @property
+    def parameters(self) -> ArrayLike:
+        return self.__robot._parameters
+
+    @property
     def q(self) -> ArrayLike:
         return self.__robot.q
 

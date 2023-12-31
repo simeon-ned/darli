@@ -150,7 +150,7 @@ class Parametric(ModelBase):
         )
 
     def inertia(self, q: ArrayLike | None = None) -> ArrayLike:
-        inertia = self._backend.math.zeros((self.nv, self.nv)).array
+        inertia = self._backend.math.zeros(self.nv, self.nv).array
         unit_vectors = self._backend.math.eye(self.nv).array
 
         for i in range(self.nv):
@@ -201,7 +201,7 @@ class Parametric(ModelBase):
                 v if v is not None else self._v,
             )
             @ self._parameters,
-            potential=self._backend.potential_energy(
+            potential=self._backend.potential_regressor(
                 q if q is not None else self._q,
             )
             @ self._parameters,

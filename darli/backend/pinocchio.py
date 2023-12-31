@@ -302,7 +302,10 @@ class PinocchioBackend(BackendBase):
         self._q = q
         self._v = v
         self._dv = dv
-        pin.computeAllTerms(self.__model, self.__data, q, v, dv)
+
+        pin.computeAllTerms(self.__model, self.__data, q, v)
+        pin.computeJointTorqueRegressor(self.__model, self.__data, q, v, dv)
+
         return self.__data.jointTorqueRegressor
 
     def kinetic_regressor(
@@ -315,22 +318,22 @@ class PinocchioBackend(BackendBase):
             self._v = v if v is not None else self._v
             pin.computeAllTerms(self.__model, self.__data, q, v)
 
-        regressor = np.zeros((self.nbodies, 10))
+        regressor = np.zeros((1, self.nbodies * 10))
         for i in range(self.nbodies):
             vel = pin.getVelocity(self.__model, self.__data, i + 1, pin.LOCAL)
             vl = vel.linear
             va = vel.angular
 
-            regressor[i, 0] = 0.5 * (vl[0] ** 2 + vl[1] ** 2 + vl[2] ** 2)
-            regressor[i, 1] = -va[1] * vl[2] + va[2] * vl[1]
-            regressor[i, 2] = va[0] * vl[2] - va[2] * vl[0]
-            regressor[i, 3] = -va[0] * vl[1] + va[1] * vl[0]
-            regressor[i, 4] = 0.5 * va[0] ** 2
-            regressor[i, 5] = va[0] * va[1]
-            regressor[i, 6] = 0.5 * va[1] ** 2
-            regressor[i, 7] = va[0] * va[2]
-            regressor[i, 8] = va[1] * va[2]
-            regressor[i, 9] = 0.5 * va[2] ** 2
+            regressor[0, i * 10 + 0] = 0.5 * (vl[0] ** 2 + vl[1] ** 2 + vl[2] ** 2)
+            regressor[0, i * 10 + 1] = -va[1] * vl[2] + va[2] * vl[1]
+            regressor[0, i * 10 + 2] = va[0] * vl[2] - va[2] * vl[0]
+            regressor[0, i * 10 + 3] = -va[0] * vl[1] + va[1] * vl[0]
+            regressor[0, i * 10 + 4] = 0.5 * va[0] ** 2
+            regressor[0, i * 10 + 5] = va[0] * va[1]
+            regressor[0, i * 10 + 6] = 0.5 * va[1] ** 2
+            regressor[0, i * 10 + 7] = va[0] * va[2]
+            regressor[0, i * 10 + 8] = va[1] * va[2]
+            regressor[0, i * 10 + 9] = 0.5 * va[2] ** 2
 
         return regressor
 
@@ -342,17 +345,17 @@ class PinocchioBackend(BackendBase):
             self._q = q if q is not None else self._q
             pin.computeAllTerms(self.__model, self.__data, q, self._v)
 
-        regressor = np.zeros((self.nbodies, 10))
+        regressor = np.zeros((1, self.nbodies * 10))
         for i in range(self.nbodies):
             r = self.__data.oMi[i + 1].translation
             R = self.__data.oMi[i + 1].rotation
-            g = self.__model.gravity.linear
+            g = -self.__model.gravity.linear
 
-            res = R @ g
-            regressor[i, 0] = g.dot(r)
-            regressor[i, 1] = res[0]
-            regressor[i, 2] = res[1]
-            regressor[i, 3] = res[2]
+            res = R.T @ g
+            regressor[0, i * 10 + 0] = g.dot(r)
+            regressor[0, i * 10 + 1] = res[0]
+            regressor[0, i * 10 + 2] = res[1]
+            regressor[0, i * 10 + 3] = res[2]
 
         return regressor
 
