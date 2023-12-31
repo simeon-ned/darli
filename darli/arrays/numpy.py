@@ -128,3 +128,15 @@ class NumpyLikeFactory(ArrayLikeFactory):
             NumpyLike: Vector wrapping *x
         """
         return NumpyLike(np.array(x))
+
+    @staticmethod
+    def solve(a: "NumpyLike", b: "NumpyLike") -> "NumpyLike":
+        """
+        Args:
+            a (NumpyLike): Matrix
+            b (NumpyLike): Vector
+
+        Returns:
+            NumpyLike: Solution of the linear system a @ x = b
+        """
+        return NumpyLike(np.linalg.solve(a, b))

@@ -2,14 +2,12 @@ from typing import List, Dict
 
 from darli.backend import BackendBase, CasadiBackend
 from darli.arrays import ArrayLike
+from ..body import Body
+from ..base import Energy, CoM, ModelBase, BodyBase
 import numpy as np
 
-from .base import Energy, CoM, ModelBase, BodyBase
-from .body import Body
-from .state_space import CasadiStateSpace, PinocchioStateSpace
 
-
-class Robot(ModelBase):
+class Parametric(ModelBase):
     def __init__(self, backend: BackendBase):
         self._backend = backend
 
@@ -23,13 +21,18 @@ class Robot(ModelBase):
         # force applied to actuators, i.e. selector @ qfrc_u
         self._u = self._backend._tau
 
+        # parameters
+        if isinstance(self.backend, CasadiBackend):
+            self._parameters = self.backend.math.array("theta", self.nbodies * 10).array
+        else:
+            self._parameters = self.backend.math.zeros(self.nbodies * 10).array
+
         self.__bodies: Dict[str, BodyBase] = dict()
         self.update_selector()
 
-        if isinstance(self.backend, CasadiBackend):
-            self.__state_space = CasadiStateSpace(self)
-        else:
-            self.__state_space = PinocchioStateSpace(self)
+    @property
+    def parameters(self) -> ArrayLike:
+        return self._parameters
 
     @property
     def q(self) -> ArrayLike:
@@ -124,15 +127,41 @@ class Robot(ModelBase):
         if u:
             self._u = u
 
+    def inverse_dynamics(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        tau: ArrayLike | None = None,
+    ) -> ArrayLike:
+        return (
+            self._backend.torque_regressor(
+                q if q is not None else self._q,
+                v if v is not None else self._v,
+                tau if tau is not None else self._tau,
+            )
+            @ self._parameters
+        )
+
     def gravity(self, q: ArrayLike | None = None) -> ArrayLike:
-        return self._backend.rnea(
+        return self.inverse_dynamics(
             q if q is not None else self._q,
             self._backend.math.zeros(self._backend.nv).array,
             self._backend.math.zeros(self._backend.nv).array,
         )
 
     def inertia(self, q: ArrayLike | None = None) -> ArrayLike:
-        return self._backend.inertia_matrix(q if q is not None else self._q)
+        inertia = self._backend.math.zeros(self.nv, self.nv).array
+        unit_vectors = self._backend.math.eye(self.nv).array
+
+        for i in range(self.nv):
+            unit_vector = unit_vectors[i, :]
+            inertia[:, i] = self._backend.torque_regressor(
+                q if q is not None else self._q,
+                self._backend.math.zeros(self.nv).array,
+                unit_vector,
+            ) @ self._parameters - self.gravity(q if q is not None else self._q)
+
+        return inertia
 
     def com(
         self,
@@ -164,28 +193,36 @@ class Robot(ModelBase):
 
     def energy(self, q: ArrayLike | None = None, v: ArrayLike | None = None) -> Energy:
         return Energy(
-            kinetic=self._backend.kinetic_energy(
+            kinetic=self._backend.kinetic_regressor(
                 q if q is not None else self._q,
                 v if v is not None else self._v,
-            ),
-            potential=self._backend.potential_energy(
+            )
+            @ self._parameters,
+            potential=self._backend.potential_regressor(
                 q if q is not None else self._q,
-            ),
+            )
+            @ self._parameters,
         )
 
     def coriolis(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        tau_grav = self._backend.rnea(
-            q if q is not None else self._q,
-            self._backend.math.zeros(self._backend.nv).array,
-            self._backend.math.zeros(self._backend.nv).array,
+        tau_grav = (
+            self._backend.torque_regressor(
+                q if q is not None else self._q,
+                self._backend.math.zeros(self._backend.nv).array,
+                self._backend.math.zeros(self._backend.nv).array,
+            )
+            @ self._parameters
         )
 
-        tau_bias = self._backend.rnea(
-            q if q is not None else self._q,
-            v if v is not None else self._v,
-            self._backend.math.zeros(self._backend.nv).array,
+        tau_bias = (
+            self._backend.torque_regressor(
+                q if q is not None else self._q,
+                v if v is not None else self._v,
+                self._backend.math.zeros(self._backend.nv).array,
+            )
+            @ self._parameters
         )
 
         return tau_grav - tau_bias
@@ -193,25 +230,33 @@ class Robot(ModelBase):
     def bias_force(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        return self._backend.rnea(
-            q if q is not None else self._q,
-            v if v is not None else self._v,
-            self._backend.math.zeros(self._backend.nv).array,
+        return (
+            self._backend.torque_regressor(
+                q if q is not None else self._q,
+                v if v is not None else self._v,
+                self._backend.math.zeros(self._backend.nv).array,
+            )
+            @ self._parameters
         )
 
     def momentum(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        raise NotImplementedError("Implement me pls")  # FIXME: implement me
+        pass
 
     def lagrangian(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        return self._backend.kinetic_energy(
-            q if q is not None else self._q,
-            v if v is not None else self._v,
-        ) - self._backend.potential_energy(
-            q if q is not None else self._q,
+        return (
+            self._backend.kinetic_regressor(
+                q if q is not None else self._q,
+                v if v is not None else self._v,
+            )
+            @ self._parameters
+            - self._backend.potential_energy(
+                q if q is not None else self._q,
+            )
+            @ self._parameters
         )
 
     @property
@@ -244,45 +289,22 @@ class Robot(ModelBase):
     def coriolis_matrix(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        raise NotImplementedError(
-            "Move me to backend, because it can be easily done only for casadi"
-        )
+        pass
 
     def forward_dynamics(
         self,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
-        u: ArrayLike | None = None,
+        tau: ArrayLike | None = None,
     ) -> ArrayLike:
-        # if u is not passed, we assume and take current tau, otherwise premultiply by selector matrix
-        return self._backend.aba(
-            q if q is not None else self._q,
-            v if v is not None else self._v,
-            tau=(self._qfrc_u if u is None else self.selector @ u)
-            + self.contact_qforce,
-        )
-
-    def inverse_dynamics(
-        self,
-        q: ArrayLike | None = None,
-        v: ArrayLike | None = None,
-        dv: ArrayLike | None = None,
-    ) -> ArrayLike:
-        """
-        Returns qfrc_u
-        """
-        return (
-            self._backend.rnea(
-                q if q is not None else self._q,
-                v if v is not None else self._v,
-                dv if dv is not None else self._dv,
-            )
-            - self.contact_qforce
-        )
+        return self._backend.math.solve(
+            self.inertia(q),
+            -self.bias_force(q, v) + (tau if tau is not None else self.qfrc_u),
+        ).array
 
     @property
     def state_space(self):
-        return self.__state_space
+        raise NotImplementedError
 
     @property
     def selector(self):

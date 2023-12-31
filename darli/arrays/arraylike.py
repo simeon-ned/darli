@@ -96,3 +96,15 @@ class ArrayLikeFactory(abc.ABC):
             x (npt.ArrayLike): matrix dimension
         """
         pass
+
+    @abc.abstractmethod
+    def solve(self, a: npt.ArrayLike, b: npt.ArrayLike) -> npt.ArrayLike:
+        """
+        Args:
+            a (npt.ArrayLike): matrix
+            b (npt.ArrayLike): vector
+
+        Returns:
+            npt.ArrayLike: solution of the linear system a * x = b
+        """
+        pass
