@@ -155,14 +155,11 @@ class Parametric(ModelBase):
 
         for i in range(self.nv):
             unit_vector = unit_vectors[i, :]
-            inertia[:, i] = (
-                self._backend.torque_regressor(
-                    q if q is not None else self._q,
-                    self._backend.math.zeros(self.nv).array,
-                    unit_vector,
-                )
-                @ self._parameters
-            )
+            inertia[:, i] = self._backend.torque_regressor(
+                q if q is not None else self._q,
+                self._backend.math.zeros(self.nv).array,
+                unit_vector,
+            ) @ self._parameters - self.gravity(q if q is not None else self._q)
 
         return inertia
 
