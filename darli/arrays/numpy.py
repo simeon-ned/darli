@@ -128,6 +128,14 @@ class NumpyLikeFactory(ArrayLikeFactory):
             NumpyLike: Vector wrapping *x
         """
         return NumpyLike(np.array(x))
+    
+    @staticmethod
+    def norm_2(x) -> "NumpyLike":
+        """
+        Returns:
+            NumpyLike: Norm of x
+        """
+        return NumpyLike(np.linalg.norm(x))
 
     @staticmethod
     def solve(a: "NumpyLike", b: "NumpyLike") -> "NumpyLike":
