@@ -170,7 +170,6 @@ class PinocchioBackend(BackendBase):
         dv: ArrayLike | None = None,
         tau: ArrayLike | None = None,
     ) -> ArrayLike:
-        # assert dv is not None or tau is not None, "Either dv or tau must be provided"
         self._q = q
         self._v = v
 
@@ -182,10 +181,11 @@ class PinocchioBackend(BackendBase):
             self._dv = pin.aba(self.__model, self.__data, self._q, self._v, self._tau)
 
         pin.computeAllTerms(self.__model, self.__data, self._q, self._v)
+        pin.jacobianCenterOfMass(self.__model, self.__data, self._q)
 
         if dv is not None and tau is not None:
+            # we have to calculate centerOfMass only if we computed dv previously
             pin.centerOfMass(self.__model, self.__data, self._q, self._v, self._dv)
-        pin.jacobianCenterOfMass(self.__model, self.__data, self._q)
 
     def rnea(
         self,
