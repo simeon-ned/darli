@@ -24,6 +24,7 @@ packages = [
     "darli",
     "darli.backend",
     "darli.arrays",
+    "darli.quaternions",
     "darli.modeling",
     "darli.modeling.functional",
     "darli.modeling.state_space",
