@@ -124,6 +124,10 @@ class Robot(ModelBase):
         if u:
             self._u = u
 
+        # update bodies
+        for body in self.__bodies.values():
+            body.update()
+
     def gravity(self, q: ArrayLike | None = None) -> ArrayLike:
         return self._backend.rnea(
             q if q is not None else self._q,
