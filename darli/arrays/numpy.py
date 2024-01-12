@@ -128,7 +128,7 @@ class NumpyLikeFactory(ArrayLikeFactory):
             NumpyLike: Vector wrapping *x
         """
         return NumpyLike(np.array(x))
-    
+
     @staticmethod
     def norm_2(x) -> "NumpyLike":
         """

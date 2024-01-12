@@ -123,7 +123,7 @@ class CasadiLikeFactory(ArrayLikeFactory):
             CasadiLike: Vector wrapping *x
         """
         return CasadiLike(cs.SX.sym(*x))
-    
+
     @staticmethod
     def norm_2(x) -> "CasadiLike":
         """

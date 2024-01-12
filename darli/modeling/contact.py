@@ -36,7 +36,7 @@ class Contact(ContactBase):
                 f"force_{self.__name}", self.dim
             ).array
         else:
-            self.__force = self.__backend.math.zeros(self.dim)
+            self.__force = self.__backend.math.zeros(self.dim).array
 
         self.__contact_qforce = self.__jacobian @ self.__force
 
