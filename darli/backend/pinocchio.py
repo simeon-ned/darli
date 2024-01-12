@@ -183,7 +183,7 @@ class PinocchioBackend(BackendBase):
         pin.computeAllTerms(self.__model, self.__data, self._q, self._v)
         pin.jacobianCenterOfMass(self.__model, self.__data, self._q)
 
-        if dv is not None and tau is not None:
+        if dv is not None or tau is not None:
             # we have to calculate centerOfMass only if we computed dv previously
             pin.centerOfMass(self.__model, self.__data, self._q, self._v, self._dv)
 
