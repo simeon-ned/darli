@@ -352,3 +352,15 @@ class CasadiBackend(BackendBase):
         self, force: ArrayLike | None, mu: float, type: str, X=None, Y=None
     ) -> ConeBase:
         return CasadiCone(force, mu, type, X, Y)
+
+    def integrate_configuration(
+        self,
+        dt: float | cs.SX,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+    ) -> ArrayLike:
+
+        return self.__kindyn.integrate()(
+            q=q if q is not None else self._q,
+            v=v * dt if v is not None else self._v * dt,
+        )["qnext"]

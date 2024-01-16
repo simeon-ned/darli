@@ -410,3 +410,16 @@ class PinocchioBackend(BackendBase):
         self, force: ArrayLike | None, mu: float, type: str, X=None, Y=None
     ) -> ConeBase:
         return PinocchioCone(force, mu, type, X, Y)
+
+    def integrate_configuration(
+        self,
+        dt: float,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+    ) -> ArrayLike:
+
+        return pin.integrate(
+            self.__model,
+            q if q is not None else self._q,
+            v if v * dt is not None else self._v * dt,
+        )
