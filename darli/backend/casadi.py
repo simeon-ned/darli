@@ -353,14 +353,14 @@ class CasadiBackend(BackendBase):
     ) -> ConeBase:
         return CasadiCone(force, mu, type, X, Y)
 
-
     def integrate_configuration(
         self,
         dt: float | None = None,
         q: ArrayLike | None = None,
-        v: ArrayLike | None = None) -> ArrayLike:
+        v: ArrayLike | None = None,
+    ) -> ArrayLike:
 
         return self.__kindyn.integrate()(
             q=q if q is not None else self._q,
-            v=v*dt if v is not None else self._v*dt)["qnext"]
-
+            v=v * dt if v is not None else self._v * dt,
+        )["qnext"]

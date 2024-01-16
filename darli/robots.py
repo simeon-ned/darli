@@ -31,7 +31,7 @@ def biped(
     for foot in foots.keys():
         body = cls.body(foot)
         body.add_contact(frame=reference, contact_type="wrench")
-    
+
     cls.update_selector(passive_joints=range(6))
     return cls
 
@@ -65,9 +65,9 @@ def quadruped(
     for foot in foots.keys():
         body = cls.body(foot)
         body.add_contact(frame=reference, contact_type="point")
-        
+
     cls.update_selector(passive_joints=range(6))
-    
+
     return cls
 
 
@@ -76,13 +76,13 @@ def manipulator(
     backend,
     urdf_path,
     ee=None,
-    ee_contact = False,
+    ee_contact=False,
     reference=Frame.LOCAL_WORLD_ALIGNED,
 ) -> Robot | Parametric | Functional:
     bodies_names = {}
 
     cls: Robot | Parametric | Functional = constructor(backend(urdf_path))
-    
+
     if ee is not None:
         if isinstance(ee, str):
             bodies_names.update([ee])
@@ -92,6 +92,5 @@ def manipulator(
         if ee_contact:
             body = cls.body(ee)
             body.add_contact(frame=reference, contact_type="wrench")
-    
 
     return cls

@@ -310,7 +310,6 @@ class PinocchioBackend(BackendBase):
 
         return self.__data.jointTorqueRegressor
 
-
     def kinetic_regressor(
         self,
         q: ArrayLike | None = None,
@@ -416,6 +415,7 @@ class PinocchioBackend(BackendBase):
         self,
         dt: float | None = None,
         q: ArrayLike | None = None,
-        v: ArrayLike | None = None) -> ArrayLike:
-    
-        return pin.integrate(self.__model, q, v*dt)
+        v: ArrayLike | None = None,
+    ) -> ArrayLike:
+
+        return pin.integrate(self.__model, q, v * dt)
