@@ -359,5 +359,8 @@ class CasadiBackend(BackendBase):
         dt: float | None = None,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None) -> ArrayLike:
-    
-        return self.__kindyn.integrate()
+
+        return self.__kindyn.integrate()(
+            q=q if q is not None else self._q,
+            v=v*dt if v is not None else self._v*dt)["qnext"]
+
