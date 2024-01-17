@@ -1,9 +1,10 @@
 import casadi_kin_dyn.casadi_kin_dyn as ckd
 
-from darli.arrays import ArrayLike
-from .base import BackendBase, ConeBase, Frame, BodyInfo
+from .base import BackendBase, ConeBase, Frame, BodyInfo, JointType
 from ..arrays import CasadiLikeFactory, ArrayLike
 import casadi as cs
+from typing import Dict
+import numpy.typing as npt
 
 
 class CasadiCone(ConeBase):
@@ -144,11 +145,29 @@ class CasadiCone(ConeBase):
 class CasadiBackend(BackendBase):
     math = CasadiLikeFactory
 
-    def __init__(self, urdf_path: str) -> None:
+    def __init__(
+        self,
+        urdf_path: str,
+        root_joint: JointType | None = JointType.OMIT,
+        fixed_joints: Dict[str, float | npt.ArrayLike] = None,
+    ) -> None:
         super().__init__(urdf_path)
+        if not fixed_joints:
+            fixed_joints = {}
+
+        self.__joint_mapping = {
+            JointType.FREE_FLYER: ckd.CasadiKinDyn.JointType.FREE_FLYER,
+            JointType.PLANAR: ckd.CasadiKinDyn.JointType.PLANAR,
+            JointType.OMIT: ckd.CasadiKinDyn.JointType.OMIT,
+        }
+
         self.__urdf_path: str = urdf_path
         urdf = open(self.__urdf_path, "r").read()
-        self.__kindyn: ckd.CasadiKinDyn = ckd.CasadiKinDyn(urdf)
+        self.__kindyn: ckd.CasadiKinDyn = ckd.CasadiKinDyn(
+            urdf,
+            root_joint=self.__joint_mapping[root_joint],
+            fixed_joints=fixed_joints,
+        )
 
         self.__nq = self.__kindyn.nq()
         self.__nv = self.__kindyn.nv()
