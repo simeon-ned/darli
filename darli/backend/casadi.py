@@ -155,7 +155,7 @@ class CasadiBackend(BackendBase):
         if not fixed_joints:
             fixed_joints = {}
 
-        self.__joint_mapping = {
+        self.__joint_types = {
             JointType.FREE_FLYER: ckd.CasadiKinDyn.JointType.FREE_FLYER,
             JointType.PLANAR: ckd.CasadiKinDyn.JointType.PLANAR,
             JointType.OMIT: ckd.CasadiKinDyn.JointType.OMIT,
@@ -165,7 +165,7 @@ class CasadiBackend(BackendBase):
         urdf = open(self.__urdf_path, "r").read()
         self.__kindyn: ckd.CasadiKinDyn = ckd.CasadiKinDyn(
             urdf,
-            root_joint=self.__joint_mapping[root_joint],
+            root_joint=self.__joint_types[root_joint],
             fixed_joints=fixed_joints,
         )
 

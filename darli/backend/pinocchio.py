@@ -143,7 +143,7 @@ class PinocchioBackend(BackendBase):
 
         self.__urdf_path: str = urdf_path
 
-        self.__joint_mapping = {
+        self.__joint_types = {
             JointType.FREE_FLYER: pin.JointModelFreeFlyer(),
             JointType.PLANAR: pin.JointModelPlanar(),
         }
@@ -153,7 +153,7 @@ class PinocchioBackend(BackendBase):
             self.__model: pin.Model = pin.buildModelFromUrdf(self.__urdf_path)
         else:
             self.__model: pin.Model = pin.buildModelFromUrdf(
-                self.__urdf_path, self.__joint_mapping[root_joint]
+                self.__urdf_path, self.__joint_types[root_joint]
             )
 
         # freeze joints and update coordinate
@@ -474,7 +474,6 @@ class PinocchioBackend(BackendBase):
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
     ) -> ArrayLike:
-
         return pin.integrate(
             self.__model,
             q if q is not None else self._q,
