@@ -35,7 +35,7 @@ def biped(
 
     if floating_selector:
         cls.update_selector(passive_joints=range(6))
-        
+
     return cls
 
 
@@ -46,7 +46,7 @@ def quadruped(
     torso=None,
     foots=None,
     arm=None,
-    floating_selector=True,  
+    floating_selector=True,
     reference=Frame.LOCAL_WORLD_ALIGNED,
 ) -> Robot | Parametric | Functional:
     bodies_names = {}
@@ -69,7 +69,7 @@ def quadruped(
     for foot in foots.keys():
         body = cls.body(foot)
         body.add_contact(frame=reference, contact_type="point")
-        
+
     if floating_selector:
         cls.update_selector(passive_joints=range(6))
 

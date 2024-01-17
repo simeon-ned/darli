@@ -24,6 +24,23 @@ class Frame(Enum):
             raise ValueError(f"Unknown frame type: {string}")
 
 
+class JointType(Enum):
+    OMIT = 1  # empty = none = no joint = skip
+    FREE_FLYER = 2
+    PLANAR = 3
+
+    @classmethod
+    def from_str(cls, string: str) -> "JointType":
+        if string == "omit":
+            return cls.OMIT
+        elif string == "free_flyer":
+            return cls.FREE_FLYER
+        elif string == "planar":
+            return cls.PLANAR
+        else:
+            raise ValueError(f"Unknown joint type: {string}")
+
+
 @dataclass
 class BodyInfo:
     position: ArrayLike
