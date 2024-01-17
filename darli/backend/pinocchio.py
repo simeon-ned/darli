@@ -182,6 +182,9 @@ class PinocchioBackend(BackendBase):
 
         pin.computeAllTerms(self.__model, self.__data, self._q, self._v)
         pin.jacobianCenterOfMass(self.__model, self.__data, self._q)
+        self.__dJcom_dt = pin.getCenterOfMassVelocityDerivatives(
+            self.__model, self.__data
+        )
 
         if dv is not None or tau is not None:
             # we have to calculate centerOfMass only if we computed dv previously
@@ -253,16 +256,23 @@ class PinocchioBackend(BackendBase):
     def jacobian_dt(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        warnings.warn(
-            "time variation of CoM jacobian is not implemented for pinocchio backend"
+        if q is None and v is None:
+            return self.__dJcom_dt
+
+        self._q = q
+        self._v = v
+        pin.centerOfMass(self.__model, self.__data, self._q, self._v, self._dv)
+        self.__dJcom_dt = pin.getCenterOfMassVelocityDerivatives(
+            self.__model, self.__data
         )
-        return None
+        return self.__dJcom_dt
 
     def com_pos(self, q: ArrayLike | None = None) -> ArrayLike:
         if q is None:
             return self.__data.com[0]
 
         self._q = q
+
         pin.centerOfMass(self.__model, self.__data, self._q, self._v, self._dv)
         return self.__data.com[0]
 
