@@ -1,1 +1,1 @@
-from .quaternions import hat, L, H  # noqa: F401
+from .quaternions import hat, L, H, E  # noqa: F401

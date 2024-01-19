@@ -53,3 +53,37 @@ def L(quat, math: ArrayLikeFactory = NumpyLikeFactory):
     L[1:4, 1:4] = s * math.eye(3).array + hat(v, math)
 
     return L
+
+
+def G(quat, math: ArrayLikeFactory = NumpyLikeFactory):
+    """
+    Generate the matrix for quaternion and angular velocity multiplication.
+
+    Parameters:
+    q (npt.ArrayLike): The quaternion.
+
+    Returns:
+    np.ndarray: The matrix for quaternion and angular velocity multiplication.
+    """
+
+    return L(quat, math) @ H(math)
+
+
+def E(state, math: ArrayLikeFactory = NumpyLikeFactory):
+    """
+    Construct the state transition matrix for the quadrotor system.
+
+    Args:
+        state (npt.ArrayLike): The current state of the quadrotor system.
+
+    Returns:
+        np.ndarray: A 13x12 state transition matrix.
+    """
+    q = state[3:7]  # Orientation (quaternion)
+
+    res = math.zeros((state.shape[0], state.shape[0] - 1)).array
+    res[0:3, 0:3] = math.eye(3).array
+    res[3:7, 3:6] = G(q, math)
+    res[7:, 6:] = math.eye(state.shape[0] - 7).array
+
+    return res
