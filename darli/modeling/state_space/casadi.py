@@ -23,10 +23,11 @@ class CasadiStateSpace(StateSpace):
         if body_name in self.force_jacobians:
             return self.force_jacobians[body_name]
 
-        if any(body_name in body.name for body in self.model.bodies.values()):
+        # check if any of bodies have the name we need
+        if body_name not in self.model.bodies.keys():
             raise KeyError(f"Body {body_name} is not added to the model")
 
-        if self.bodies[body_name].contact is None:
+        if self.model.bodies[body_name].contact is None:
             raise KeyError(f"Body {body_name} has no contact")
 
         xdot = self.state_derivative

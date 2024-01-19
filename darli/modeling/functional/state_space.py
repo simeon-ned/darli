@@ -103,7 +103,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 self.__space.model.qfrc_u,
                 *self.__space.model.contact_forces,
             ],
-            [self.__space.input_jacobian],
+            [self.__space.force_jacobian(body_name)],
             [
                 "q",
                 "v",
