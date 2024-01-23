@@ -56,32 +56,32 @@ class BodyInfo:
 @dataclass
 class CentroidalDynamics:
     """
-    h_lin: linear momentum
-    h_ang: angular momentum
-    dh_lin: linear momentum derivative
-    dh_ang: angular momentum derivative
-    Ag: centroidal momentum matrix
+    momentum_linear: linear momentum
+    momentum_angular: angular momentum
+    dmomentum_linear: linear momentum derivative
+    dmomentum_angular: angular momentum derivative
+    centroidal_matrix: centroidal momentum matrix
 
-    dh_dq: linear momentum derivative w.r.t. q
-    dhdot_dq: momentum derivative w.r.t. q
-    dhdot_dv: momentum derivative w.r.t. v
-    dhdot_da: momentum derivative w.r.t. dv
+    dmomentum_dq: linear momentum derivative w.r.t. q
+    dmomentumdot_dq: momentum derivative w.r.t. q
+    dmomentumdot_dv: momentum derivative w.r.t. v
+    dmomentumdot_dvdot: momentum derivative w.r.t. dv
 
     Under the hood uses pinocchio methods:
         - computeCentroidalMomentumTimeVariation
         - computeCentroidalDynamicsDerivatives
     """
 
-    h_lin: ArrayLike
-    h_ang: ArrayLike
-    dh_lin: ArrayLike
-    dh_ang: ArrayLike
-    Ag: ArrayLike
+    momentum_linear: ArrayLike
+    momentum_angular: ArrayLike
+    dmomentum_linear: ArrayLike
+    dmomentum_angular: ArrayLike
+    centroidal_matrix: ArrayLike
 
-    dh_dq: ArrayLike
-    dhdot_dq: ArrayLike
-    dhdot_dv: ArrayLike
-    dhdot_da: ArrayLike
+    dmomentum_dq: ArrayLike
+    dmomentumdot_dq: ArrayLike
+    dmomentumdot_dv: ArrayLike
+    dmomentumdot_dvdot: ArrayLike
 
 
 class ConeBase(ABC):

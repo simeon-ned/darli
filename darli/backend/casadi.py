@@ -401,13 +401,13 @@ class CasadiBackend(BackendBase):
         )
 
         return CentroidalDynamics(
-            Ag=dyn["Ag"],
-            h_lin=dyn["h_lin"],
-            h_ang=dyn["h_ang"],
-            dh_lin=dyn["dh_lin"],
-            dh_ang=dyn["dh_ang"],
-            dh_dq=dyn_der["dh_dq"],
-            dhdot_dq=dyn_der["dhdot_dq"],
-            dhdot_dv=dyn_der["dhdot_dv"],
-            dhdot_da=dyn_der["dhdot_da"],
+            centroidal_matrix=dyn["Ag"],
+            momentum_linear=dyn["h_lin"],
+            momentum_angular=dyn["h_ang"],
+            dmomentum_linear=dyn["dh_lin"],
+            dmomentum_angular=dyn["dh_ang"],
+            dmomentum_dq=dyn_der["dh_dq"],
+            dmomentumdot_dq=dyn_der["dhdot_dq"],
+            dmomentumdot_dv=dyn_der["dhdot_dv"],
+            dmomentumdot_dvdot=dyn_der["dhdot_da"],
         )

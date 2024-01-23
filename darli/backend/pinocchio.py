@@ -496,15 +496,15 @@ class PinocchioBackend(BackendBase):
     ) -> CentroidalDynamics:
         if q is None and v is None and dv is None:
             return CentroidalDynamics(
-                Ag=self.__data.Ag,
-                h_lin=self.__data.hg.linear,
-                h_ang=self.__data.hg.angular,
-                dh_lin=self.__data.dhg.linear,
-                dh_ang=self.__data.dhg.angular,
-                dh_dq=self.__centroidal_derivatives[0],
-                dhdot_dq=self.__centroidal_derivatives[1],
-                dhdot_dv=self.__centroidal_derivatives[2],
-                dhdot_da=self.__centroidal_derivatives[3],
+                centroidal_matrix=self.__data.Ag,
+                momentum_linear=self.__data.hg.linear,
+                momentum_angular=self.__data.hg.angular,
+                dmomentum_linear=self.__data.dhg.linear,
+                dmomentum_angular=self.__data.dhg.angular,
+                dmomentum_dq=self.__centroidal_derivatives[0],
+                dmomentumdot_dq=self.__centroidal_derivatives[1],
+                dmomentumdot_dv=self.__centroidal_derivatives[2],
+                dmomentumdot_dvdot=self.__centroidal_derivatives[3],
             )
 
         self._q = q if q is not None else self._q
@@ -519,13 +519,13 @@ class PinocchioBackend(BackendBase):
         )
 
         return CentroidalDynamics(
-            Ag=self.__data.Ag,
-            h_lin=self.__data.hg.linear,
-            h_ang=self.__data.hg.angular,
-            dh_lin=self.__data.dhg.linear,
-            dh_ang=self.__data.dhg.angular,
-            dh_dq=self.__centroidal_derivatives[0],
-            dhdot_dq=self.__centroidal_derivatives[1],
-            dhdot_dv=self.__centroidal_derivatives[2],
-            dhdot_da=self.__centroidal_derivatives[3],
+            centroidal_matrix=self.__data.Ag,
+            momentum_linear=self.__data.hg.linear,
+            momentum_angular=self.__data.hg.angular,
+            dmomentum_linear=self.__data.dhg.linear,
+            dmomentum_angular=self.__data.dhg.angular,
+            dmomentum_dq=self.__centroidal_derivatives[0],
+            dmomentumdot_dq=self.__centroidal_derivatives[1],
+            dmomentumdot_dv=self.__centroidal_derivatives[2],
+            dmomentumdot_dvdot=self.__centroidal_derivatives[3],
         )
