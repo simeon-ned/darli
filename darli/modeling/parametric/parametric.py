@@ -342,3 +342,12 @@ class Parametric(ModelBase):
             self._qfrc_u = self.backend.math.array("tau", self.nu).array
         else:
             self._qfrc_u = self.backend.math.zeros(self.nu).array
+
+    @property
+    def centroidal_dynamics(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ):
+        raise NotImplementedError

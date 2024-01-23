@@ -296,3 +296,12 @@ class Functional(ModelBase):
             ["q", "v", "dv", *self.contact_names, "parameters"],
             ["tau"],
         )
+
+    @property
+    def centroidal_dynamics(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ):
+        raise NotImplementedError
