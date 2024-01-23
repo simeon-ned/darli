@@ -300,66 +300,66 @@ class Functional(ModelBase):
         supercentroidal = self.__robot.centroidal_dynamics(self.q, self.v, self.dv)
 
         res = CentroidalDynamics(
-            centroidal_matrix=cs.Function(
+            matrix=cs.Function(
                 "Ag",
                 [self.q],
-                [supercentroidal.centroidal_matrix],
+                [supercentroidal.matrix],
                 ["q"],
                 ["Ag"],
             ),
-            momentum_linear=cs.Function(
+            linear=cs.Function(
                 "h_lin",
                 [self.q, self.v],
-                [supercentroidal.momentum_linear],
+                [supercentroidal.linear],
                 ["q", "v"],
                 ["h_lin"],
             ),
-            momentum_angular=cs.Function(
+            angular=cs.Function(
                 "h_ang",
                 [self.q, self.v],
-                [supercentroidal.momentum_angular],
+                [supercentroidal.angular],
                 ["q", "v"],
                 ["h_ang"],
             ),
-            dmomentum_linear=cs.Function(
+            linear_dt=cs.Function(
                 "dh_lin",
                 [self.q, self.v, self.dv],
-                [supercentroidal.dmomentum_linear],
+                [supercentroidal.linear_dt],
                 ["q", "v", "dv"],
                 ["dh_lin"],
             ),
-            dmomentum_angular=cs.Function(
+            angular_dt=cs.Function(
                 "dh_ang",
                 [self.q, self.v, self.dv],
-                [supercentroidal.dmomentum_angular],
+                [supercentroidal.angular_dt],
                 ["q", "v", "dv"],
                 ["dh_ang"],
             ),
-            dmomentum_dq=cs.Function(
+            matrix_dt=cs.Function(
                 "dh_dq",
                 [self.q, self.v, self.dv],
-                [supercentroidal.dmomentum_dq],
+                [supercentroidal.matrix_dt],
                 ["q", "v", "dv"],
                 ["dh_dq"],
             ),
-            dmomentumdot_dq=cs.Function(
+            dynamics_jacobian_q=cs.Function(
                 "dhdot_dq",
                 [self.q, self.v, self.dv],
-                [supercentroidal.dmomentumdot_dq],
+                [supercentroidal.dynamics_jacobian_q],
                 ["q", "v", "dv"],
                 ["dhdot_dq"],
             ),
-            dmomentumdot_dv=cs.Function(
+            dynamics_jacobian_v=cs.Function(
                 "dhdot_dv",
                 [self.q, self.v, self.dv],
-                [supercentroidal.dmomentumdot_dv],
+                [supercentroidal.dynamics_jacobian_v],
                 ["q", "v", "dv"],
                 ["dhdot_dv"],
             ),
-            dmomentumdot_dvdot=cs.Function(
+            dynamics_jacobian_dv=cs.Function(
                 "dhdot_da",
                 [self.q, self.v, self.dv],
-                [supercentroidal.dmomentumdot_dvdot],
+                [supercentroidal.dynamics_jacobian_dv],
                 ["q", "v", "dv"],
                 ["dhdot_da"],
             ),
