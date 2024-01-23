@@ -1,4 +1,4 @@
-from darli.backend import BackendBase, CasadiBackend
+from darli.backend import BackendBase, CasadiBackend, CentroidalDynamics
 from darli.arrays import ArrayLike
 import casadi as cs
 
@@ -24,6 +24,7 @@ class Functional(ModelBase):
         # instances we want to cache
         self.__com = None
         self.__energy = None
+        self.__centroidal = None
 
     @property
     def q(self) -> ArrayLike:
@@ -290,3 +291,81 @@ class Functional(ModelBase):
             ["q", "v", "dv", *self.contact_names],
             ["tau"],
         )
+
+    @property
+    def centroidal_dynamics(self) -> CentroidalDynamics:
+        if self.__centroidal is not None:
+            return self.__centroidal
+
+        supercentroidal = self.__robot.centroidal_dynamics(self.q, self.v, self.dv)
+
+        res = CentroidalDynamics(
+            Ag=cs.Function(
+                "Ag",
+                [self.q],
+                [supercentroidal.Ag],
+                ["q"],
+                ["Ag"],
+            ),
+            h_lin=cs.Function(
+                "h_lin",
+                [self.q, self.v],
+                [supercentroidal.h_lin],
+                ["q", "v"],
+                ["h_lin"],
+            ),
+            h_ang=cs.Function(
+                "h_ang",
+                [self.q, self.v],
+                [supercentroidal.h_ang],
+                ["q", "v"],
+                ["h_ang"],
+            ),
+            dh_lin=cs.Function(
+                "dh_lin",
+                [self.q, self.v, self.dv],
+                [supercentroidal.dh_lin],
+                ["q", "v", "dv"],
+                ["dh_lin"],
+            ),
+            dh_ang=cs.Function(
+                "dh_ang",
+                [self.q, self.v, self.dv],
+                [supercentroidal.dh_ang],
+                ["q", "v", "dv"],
+                ["dh_ang"],
+            ),
+            dh_dq=cs.Function(
+                "dh_dq",
+                [self.q, self.v, self.dv],
+                [supercentroidal.dh_dq],
+                ["q", "v", "dv"],
+                ["dh_dq"],
+            ),
+            dhdot_dq=cs.Function(
+                "dhdot_dq",
+                [self.q, self.v, self.dv],
+                [supercentroidal.dhdot_dq],
+                ["q", "v", "dv"],
+                ["dhdot_dq"],
+            ),
+            dhdot_dv=cs.Function(
+                "dhdot_dv",
+                [self.q, self.v, self.dv],
+                [supercentroidal.dhdot_dv],
+                ["q", "v", "dv"],
+                ["dhdot_dv"],
+            ),
+            dhdot_da=cs.Function(
+                "dhdot_da",
+                [self.q, self.v, self.dv],
+                [supercentroidal.dhdot_da],
+                ["q", "v", "dv"],
+                ["dhdot_da"],
+            ),
+        )
+
+        # cache result
+        self.__centroidal = res
+
+        return res

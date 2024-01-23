@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from darli.backend import BackendBase, CasadiBackend
+from darli.backend import BackendBase, CasadiBackend, CentroidalDynamics
 from darli.arrays import ArrayLike
 import numpy as np
 
@@ -324,3 +324,11 @@ class Robot(ModelBase):
             self._qfrc_u = self.backend.math.array("tau", self.nu).array
         else:
             self._qfrc_u = self.backend.math.zeros(self.nu).array
+
+    def centroidal_dynamics(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> CentroidalDynamics:
+        return self.backend.centroidal_dynamics(q, v, dv)
