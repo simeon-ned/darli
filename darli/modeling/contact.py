@@ -6,6 +6,7 @@ from ..backend import (
     CasadiCone,
     PinocchioCone,
 )
+from ..arrays import ArrayLike
 from .base import ContactBase
 
 
@@ -58,12 +59,16 @@ class Contact(ContactBase):
     def ref_frame(self):
         return self.__frame
 
-    def update(self):
-        self.__jacobian = (
-            self.__backend.update_body(self.__name)
-            .jacobian[self.__frame]
-            .T[:, : self.dim]
-        )
+    def update(self, jacobian: ArrayLike | None = None):
+        # if jacobian is given directly, just use it
+        if jacobian is not None:
+            self.__jacobian = jacobian[:, : self.dim]
+        else:
+            self.__jacobian = (
+                self.__backend.update_body(self.__name)
+                .jacobian[self.__frame]
+                .T[:, : self.dim]
+            )
 
         self.__contact_qforce = self.__jacobian @ self.__force
 

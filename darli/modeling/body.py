@@ -115,7 +115,13 @@ class Body(BodyBase):
     def update(self):
         self.__info = self.__backend.update_body(self.name, self.urdf_name)
 
-        if self.__contact_type is not None:
+        # update contact
+        if self.__contact is not None:
+            self.__contact.update(self.__info.jacobian[self.__contact.ref_frame])
+
+        # should run at first occasion, if contact should be added,
+        # it will automatically load info about body's jacobian
+        if self.__contact_type is not None and self.__contact is None:
             self.add_contact(self.__contact_type)
 
     def add_contact(
