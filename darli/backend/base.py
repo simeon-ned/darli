@@ -53,6 +53,35 @@ class BodyInfo:
     ang_acc: Dict[Frame, ArrayLike]
 
 
+@dataclass
+class CentroidalDynamics:
+    """
+    linear: linear momentum
+    angular: angular momentum
+    linear_dt: linear momentum derivative
+    angular_dt: angular momentum derivative
+    matrix: centroidal momentum matrix
+    matrix_dt: same as linear momentum derivative w.r.t. q
+    dynamics_jacobian_q: momentum derivative w.r.t. q
+    dynamics_jacobian_v: momentum derivative w.r.t. v
+    dynamics_jacobian_vdot: momentum derivative w.r.t. dv
+
+    Under the hood uses pinocchio methods:
+        - computeCentroidalMomentumTimeVariation
+        - computeCentroidalDynamicsDerivatives
+    """
+
+    linear: ArrayLike
+    angular: ArrayLike
+    linear_dt: ArrayLike
+    angular_dt: ArrayLike
+    matrix: ArrayLike
+    matrix_dt: ArrayLike
+    dynamics_jacobian_q: ArrayLike
+    dynamics_jacobian_v: ArrayLike
+    dynamics_jacobian_dv: ArrayLike
+
+
 class ConeBase(ABC):
     @abstractmethod
     def full(self, force: ArrayLike | None) -> ArrayLike:
@@ -210,6 +239,15 @@ class BackendBase(ABC, PinocchioBased):
         self,
         q: ArrayLike | None = None,
     ) -> ArrayLike:
+        pass
+
+    @abstractmethod
+    def centroidal_dynamics(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> CentroidalDynamics:
         pass
 
     @abstractmethod

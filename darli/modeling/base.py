@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from ..arrays import ArrayLike
 from typing import List, Dict
-from ..backend import BackendBase, Frame
+from ..backend import BackendBase, Frame, CentroidalDynamics
 
 
 @dataclass
@@ -312,6 +312,15 @@ class ModelBase(ABC):
 
     @abstractmethod
     def body(self, name: str) -> BodyBase:
+        ...
+
+    @abstractmethod
+    def centroidal_dynamics(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> CentroidalDynamics:
         ...
 
 

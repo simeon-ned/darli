@@ -5,6 +5,7 @@ from .base import (
     ConeBase,
     PinocchioBased,
     JointType,
+    CentroidalDynamics,
 )  # noqa: F401
 from .casadi import CasadiBackend, CasadiCone  # noqa: F401
 from .pinocchio import PinocchioBackend, PinocchioCone  # noqa: F401

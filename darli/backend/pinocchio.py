@@ -1,9 +1,9 @@
 import pinocchio as pin
-from .base import BackendBase, BodyInfo, ConeBase, Frame, JointType
+
+from .base import BackendBase, BodyInfo, ConeBase, Frame, JointType, CentroidalDynamics
 from ..arrays import ArrayLike, NumpyLikeFactory
 import numpy as np
 import numpy.typing as npt
-import warnings
 from typing import Dict
 
 
@@ -236,6 +236,14 @@ class PinocchioBackend(BackendBase):
         if dv is not None or tau is not None:
             # we have to calculate centerOfMass only if we computed dv previously
             pin.centerOfMass(self.__model, self.__data, self._q, self._v, self._dv)
+            # compute centroidal dynamics and first derivative
+            pin.computeCentroidalMomentumTimeVariation(
+                self.__model, self.__data, self._q, self._v, self._dv
+            )
+            # compute jacobians of centroidal dynamics
+            self.__centroidal_derivatives = pin.computeCentroidalDynamicsDerivatives(
+                self.__model, self.__data, self._q, self._v, self._dv
+            )
 
     def rnea(
         self,
@@ -478,4 +486,46 @@ class PinocchioBackend(BackendBase):
             self.__model,
             q if q is not None else self._q,
             v if v * dt is not None else self._v * dt,
+        )
+
+    def centroidal_dynamics(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> CentroidalDynamics:
+        if q is None and v is None and dv is None:
+            return CentroidalDynamics(
+                matrix=self.__data.Ag,
+                linear=self.__data.hg.linear,
+                angular=self.__data.hg.angular,
+                linear_dt=self.__data.dhg.linear,
+                angular_dt=self.__data.dhg.angular,
+                matrix_dt=self.__centroidal_derivatives[0],
+                dynamics_jacobian_q=self.__centroidal_derivatives[1],
+                dynamics_jacobian_v=self.__centroidal_derivatives[2],
+                dynamics_jacobian_dv=self.__centroidal_derivatives[3],
+            )
+
+        self._q = q if q is not None else self._q
+        self._v = v if v is not None else self._v
+        self._dv = dv if dv is not None else self._dv
+
+        pin.computeCentroidalMomentumTimeVariation(
+            self.__model, self.__data, self._q, self._v, self._dv
+        )
+        pin.computeCentroidalDynamicsDerivatives(
+            self.__model, self.__data, self._q, self._v, self._dv
+        )
+
+        return CentroidalDynamics(
+            matrix=self.__data.Ag,
+            linear=self.__data.hg.linear,
+            angular=self.__data.hg.angular,
+            linear_dt=self.__data.dhg.linear,
+            angular_dt=self.__data.dhg.angular,
+            matrix_dt=self.__centroidal_derivatives[0],
+            dynamics_jacobian_q=self.__centroidal_derivatives[1],
+            dynamics_jacobian_v=self.__centroidal_derivatives[2],
+            dynamics_jacobian_dv=self.__centroidal_derivatives[3],
         )

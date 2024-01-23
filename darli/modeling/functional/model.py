@@ -1,4 +1,4 @@
-from darli.backend import BackendBase, CasadiBackend
+from darli.backend import BackendBase, CasadiBackend, CentroidalDynamics
 from darli.arrays import ArrayLike
 import casadi as cs
 
@@ -24,6 +24,7 @@ class Functional(ModelBase):
         # instances we want to cache
         self.__com = None
         self.__energy = None
+        self.__centroidal = None
 
     @property
     def q(self) -> ArrayLike:
@@ -290,3 +291,81 @@ class Functional(ModelBase):
             ["q", "v", "dv", *self.contact_names],
             ["tau"],
         )
+
+    @property
+    def centroidal_dynamics(self) -> CentroidalDynamics:
+        if self.__centroidal is not None:
+            return self.__centroidal
+
+        supercentroidal = self.__robot.centroidal_dynamics(self.q, self.v, self.dv)
+
+        res = CentroidalDynamics(
+            matrix=cs.Function(
+                "Ag",
+                [self.q],
+                [supercentroidal.matrix],
+                ["q"],
+                ["Ag"],
+            ),
+            linear=cs.Function(
+                "h_lin",
+                [self.q, self.v],
+                [supercentroidal.linear],
+                ["q", "v"],
+                ["h_lin"],
+            ),
+            angular=cs.Function(
+                "h_ang",
+                [self.q, self.v],
+                [supercentroidal.angular],
+                ["q", "v"],
+                ["h_ang"],
+            ),
+            linear_dt=cs.Function(
+                "dh_lin",
+                [self.q, self.v, self.dv],
+                [supercentroidal.linear_dt],
+                ["q", "v", "dv"],
+                ["dh_lin"],
+            ),
+            angular_dt=cs.Function(
+                "dh_ang",
+                [self.q, self.v, self.dv],
+                [supercentroidal.angular_dt],
+                ["q", "v", "dv"],
+                ["dh_ang"],
+            ),
+            matrix_dt=cs.Function(
+                "dh_dq",
+                [self.q, self.v, self.dv],
+                [supercentroidal.matrix_dt],
+                ["q", "v", "dv"],
+                ["dh_dq"],
+            ),
+            dynamics_jacobian_q=cs.Function(
+                "dhdot_dq",
+                [self.q, self.v, self.dv],
+                [supercentroidal.dynamics_jacobian_q],
+                ["q", "v", "dv"],
+                ["dhdot_dq"],
+            ),
+            dynamics_jacobian_v=cs.Function(
+                "dhdot_dv",
+                [self.q, self.v, self.dv],
+                [supercentroidal.dynamics_jacobian_v],
+                ["q", "v", "dv"],
+                ["dhdot_dv"],
+            ),
+            dynamics_jacobian_dv=cs.Function(
+                "dhdot_da",
+                [self.q, self.v, self.dv],
+                [supercentroidal.dynamics_jacobian_dv],
+                ["q", "v", "dv"],
+                ["dhdot_da"],
+            ),
+        )
+
+        # cache result
+        self.__centroidal = res
+
+        return res

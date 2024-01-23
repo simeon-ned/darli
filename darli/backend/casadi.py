@@ -1,6 +1,6 @@
 import casadi_kin_dyn.casadi_kin_dyn as ckd
 
-from .base import BackendBase, ConeBase, Frame, BodyInfo, JointType
+from .base import BackendBase, ConeBase, Frame, BodyInfo, JointType, CentroidalDynamics
 from ..arrays import CasadiLikeFactory, ArrayLike
 import casadi as cs
 from typing import Dict
@@ -378,8 +378,36 @@ class CasadiBackend(BackendBase):
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
     ) -> ArrayLike:
-
         return self.__kindyn.integrate()(
             q=q if q is not None else self._q,
             v=v * dt if v is not None else self._v * dt,
         )["qnext"]
+
+    def centroidal_dynamics(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> CentroidalDynamics:
+        dyn = self.__kindyn.computeCentroidalDynamics()(
+            q=q if q is not None else self._q,
+            v=v if v is not None else self._v,
+            a=dv if dv is not None else self._dv,
+        )
+        dyn_der = self.__kindyn.computeCentroidalDynamicsDerivatives()(
+            q=q if q is not None else self._q,
+            v=v if v is not None else self._v,
+            a=dv if dv is not None else self._dv,
+        )
+
+        return CentroidalDynamics(
+            matrix=dyn["Ag"],
+            linear=dyn["h_lin"],
+            angular=dyn["h_ang"],
+            linear_dt=dyn["dh_lin"],
+            angular_dt=dyn["dh_ang"],
+            matrix_dt=dyn_der["dh_dq"],
+            dynamics_jacobian_q=dyn_der["dhdot_dq"],
+            dynamics_jacobian_v=dyn_der["dhdot_dv"],
+            dynamics_jacobian_dv=dyn_der["dhdot_da"],
+        )
