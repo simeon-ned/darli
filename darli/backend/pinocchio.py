@@ -200,6 +200,7 @@ class PinocchioBackend(BackendBase):
 
         self.__frame_types = self.__frame_mapping.keys()
 
+        self.__body_info_cache = {}
         self.update(self._q, self._v, self._dv, self._tau)
 
     @property
@@ -236,6 +237,9 @@ class PinocchioBackend(BackendBase):
         if dv is not None or tau is not None:
             # we have to calculate centerOfMass only if we computed dv previously
             pin.centerOfMass(self.__model, self.__data, self._q, self._v, self._dv)
+
+        # we have to clear body info cache
+        self.__body_info_cache = {}
 
     def rnea(
         self,
@@ -422,6 +426,10 @@ class PinocchioBackend(BackendBase):
         if body_urdf_name is None:
             body_urdf_name = body
 
+        # if we have cached information about body, clean it
+        if body_urdf_name in self.__body_info_cache:
+            return self.__body_info_cache[body_urdf_name]
+
         frame_idx = self.__model.getFrameId(body_urdf_name)
 
         jacobian = {}
@@ -448,7 +456,7 @@ class PinocchioBackend(BackendBase):
                 jacobian[frame][3:] @ self._dv + djacobian[frame][3:] @ self._v
             )
 
-        return BodyInfo(
+        result = BodyInfo(
             position=self.__data.oMf[frame_idx].translation,
             rotation=self.__data.oMf[frame_idx].rotation,
             jacobian=jacobian,
@@ -458,6 +466,9 @@ class PinocchioBackend(BackendBase):
             lin_acc=lin_acc,
             ang_acc=ang_acc,
         )
+        self.__body_info_cache[body_urdf_name] = result
+
+        return result
 
     def cone(
         self, force: ArrayLike | None, mu: float, type: str, X=None, Y=None
