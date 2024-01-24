@@ -424,43 +424,39 @@ class PinocchioBackend(BackendBase):
 
         frame_idx = self.__model.getFrameId(body_urdf_name)
 
-        jacobian = {
-            Frame.from_str(frame): pin.getFrameJacobian(
-                self.__model, self.__data, frame_idx, fstr
-            )
-            for frame, fstr in self.__frame_mapping.items()
-        }
+        jacobian = {}
+        djacobian = {}
+        lin_vel = {}
+        ang_vel = {}
+        lin_acc = {}
+        ang_acc = {}
+        for frame_str, fstr in self.__frame_mapping.items():
+            frame = Frame.from_str(frame_str)
 
-        djacobian = {
-            Frame.from_str(frame): pin.getFrameJacobianTimeVariation(
+            jacobian[frame] = pin.getFrameJacobian(
                 self.__model, self.__data, frame_idx, fstr
             )
-            for frame, fstr in self.__frame_mapping.items()
-        }
+            djacobian[frame] = pin.getFrameJacobianTimeVariation(
+                self.__model, self.__data, frame_idx, fstr
+            )
+            lin_vel[frame] = jacobian[frame][:3] @ self._v
+            ang_vel[frame] = jacobian[frame][3:] @ self._v
+            lin_acc[frame] = (
+                jacobian[frame][:3] @ self._dv + djacobian[frame][:3] @ self._v
+            )
+            ang_acc[frame] = (
+                jacobian[frame][3:] @ self._dv + djacobian[frame][3:] @ self._v
+            )
 
         return BodyInfo(
             position=self.__data.oMf[frame_idx].translation,
             rotation=self.__data.oMf[frame_idx].rotation,
             jacobian=jacobian,
             djacobian=djacobian,
-            lin_vel={
-                Frame.from_str(frame): jacobian[Frame.from_str(frame)][:3] @ self._v
-                for frame in self.__frame_types
-            },
-            ang_vel={
-                Frame.from_str(frame): jacobian[Frame.from_str(frame)][3:] @ self._v
-                for frame in self.__frame_types
-            },
-            lin_acc={
-                Frame.from_str(frame): jacobian[Frame.from_str(frame)][:3] @ self._dv
-                + djacobian[Frame.from_str(frame)][:3] @ self._v
-                for frame in self.__frame_types
-            },
-            ang_acc={
-                Frame.from_str(frame): jacobian[Frame.from_str(frame)][3:] @ self._dv
-                + djacobian[Frame.from_str(frame)][3:] @ self._v
-                for frame in self.__frame_types
-            },
+            lin_vel=lin_vel,
+            ang_vel=ang_vel,
+            lin_acc=lin_acc,
+            ang_acc=ang_acc,
         )
 
     def cone(
