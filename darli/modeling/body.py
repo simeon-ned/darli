@@ -56,6 +56,11 @@ class Body(BodyBase):
             world_aligned=self.__info.jacobian[Frame.LOCAL_WORLD_ALIGNED],
         )
 
+    def get_jacobian(self, frame: Frame) -> ArrayLike:
+        if self.__info is None:
+            raise ValueError("Jacobian is not calculated, run `update()` first")
+        return self.__info.jacobian[frame]
+
     @property
     def jacobian_dt(self) -> FrameQuantity:
         if self.__info is None:
@@ -67,6 +72,13 @@ class Body(BodyBase):
             world=self.__info.djacobian[Frame.WORLD],
             world_aligned=self.__info.djacobian[Frame.LOCAL_WORLD_ALIGNED],
         )
+
+    def get_jacobian_dt(self, frame: Frame) -> ArrayLike:
+        if self.__info is None:
+            raise ValueError(
+                "Jacobian derivative is not calculated, run `update()` first"
+            )
+        return self.__info.djacobian[frame]
 
     @property
     def linear_velocity(self) -> FrameQuantity:

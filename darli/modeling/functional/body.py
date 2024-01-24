@@ -74,6 +74,13 @@ class FunctionalBody(BodyBase):
             ),
         )
 
+    def get_jacobian(self, frame: Frame):
+        return cs.Function(
+            "jacobian_" + str(frame),
+            [self.__body.backend._q],
+            [self.__body.get_jacobian[frame]],
+        )
+
     @property
     def jacobian_dt(self):
         return FrameQuantity(
@@ -92,6 +99,13 @@ class FunctionalBody(BodyBase):
                 [self.__body.backend._q, self.__body.backend._v],
                 [self.__body.jacobian_dt.world_aligned],
             ),
+        )
+
+    def get_jacobian_dt(self, frame: Frame):
+        return cs.Function(
+            "jacobian_dt_" + str(frame),
+            [self.__body.backend._q, self.__body.backend._v],
+            [self.__body.get_jacobian_dt[frame]],
         )
 
     @property
@@ -114,6 +128,13 @@ class FunctionalBody(BodyBase):
             ),
         )
 
+    def get_linear_velocity(self, frame: Frame):
+        return cs.Function(
+            "linear_velocity_" + str(frame),
+            [self.__body.backend._q, self.__body.backend._v],
+            [self.__body.get_linear_velocity[frame]],
+        )
+
     @property
     def angular_velocity(self):
         return FrameQuantity(
@@ -132,6 +153,13 @@ class FunctionalBody(BodyBase):
                 [self.__body.backend._q, self.__body.backend._v],
                 [self.__body.angular_velocity.world_aligned],
             ),
+        )
+
+    def get_angular_velocity(self, frame: Frame):
+        return cs.Function(
+            "angular_velocity_" + str(frame),
+            [self.__body.backend._q, self.__body.backend._v],
+            [self.__body.get_angular_velocity[frame]],
         )
 
     @property
@@ -166,6 +194,13 @@ class FunctionalBody(BodyBase):
             ),
         )
 
+    def get_linear_acceleration(self, frame: Frame):
+        return cs.Function(
+            "linear_acceleration_" + str(frame),
+            [self.__body.backend._q, self.__body.backend._v, self.__body.backend._dv],
+            [self.__body.get_linear_acceleration[frame]],
+        )
+
     @property
     def angular_acceleration(self):
         return FrameQuantity(
@@ -196,6 +231,13 @@ class FunctionalBody(BodyBase):
                 ],
                 [self.__body.angular_acceleration.world_aligned],
             ),
+        )
+
+    def get_angular_acceleration(self, frame: Frame):
+        return cs.Function(
+            "angular_acceleration_" + str(frame),
+            [self.__body.backend._q, self.__body.backend._v, self.__body.backend._dv],
+            [self.__body.get_angular_acceleration[frame]],
         )
 
     def update(self):
