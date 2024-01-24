@@ -78,6 +78,11 @@ class Body(BodyBase):
             world_aligned=self.__info.lin_vel[Frame.LOCAL_WORLD_ALIGNED],
         )
 
+    def get_linear_velocity(self, frame: Frame) -> ArrayLike:
+        if self.__info is None:
+            raise ValueError("Linear velocity is not calculated, run `update()` first")
+        return self.__info.lin_vel[frame]
+
     @property
     def angular_velocity(self) -> FrameQuantity:
         if self.__info is None:
@@ -87,6 +92,11 @@ class Body(BodyBase):
             world=self.__info.ang_vel[Frame.WORLD],
             world_aligned=self.__info.ang_vel[Frame.LOCAL_WORLD_ALIGNED],
         )
+
+    def get_angular_velocity(self, frame: Frame) -> ArrayLike:
+        if self.__info is None:
+            raise ValueError("Angular velocity is not calculated, run `update()` first")
+        return self.__info.ang_vel[frame]
 
     @property
     def linear_acceleration(self) -> FrameQuantity:
@@ -100,6 +110,13 @@ class Body(BodyBase):
             world_aligned=self.__info.lin_acc[Frame.LOCAL_WORLD_ALIGNED],
         )
 
+    def get_linear_acceleration(self, frame: Frame) -> ArrayLike:
+        if self.__info is None:
+            raise ValueError(
+                "Linear acceleration is not calculated, run `update()` first"
+            )
+        return self.__info.lin_acc[frame]
+
     @property
     def angular_acceleration(self) -> FrameQuantity:
         if self.__info is None:
@@ -111,6 +128,13 @@ class Body(BodyBase):
             world=self.__info.ang_acc[Frame.WORLD],
             world_aligned=self.__info.ang_acc[Frame.LOCAL_WORLD_ALIGNED],
         )
+
+    def get_angular_acceleration(self, frame: Frame) -> ArrayLike:
+        if self.__info is None:
+            raise ValueError(
+                "Angular acceleration is not calculated, run `update()` first"
+            )
+        return self.__info.ang_acc[frame]
 
     def update(self):
         self.__info = self.__backend.update_body(self.name, self.urdf_name)
