@@ -31,7 +31,7 @@ def hat(vec, math: ArrayLikeFactory = NumpyLikeFactory):
     return res
 
 
-def L(quat, math: ArrayLikeFactory = NumpyLikeFactory):
+def left_mult(quat, math: ArrayLikeFactory = NumpyLikeFactory):
     """
     Compute the left multiplication matrix of a quaternion.
 
@@ -55,7 +55,7 @@ def L(quat, math: ArrayLikeFactory = NumpyLikeFactory):
     return L
 
 
-def G(quat, math: ArrayLikeFactory = NumpyLikeFactory):
+def tangent_map(quat, math: ArrayLikeFactory = NumpyLikeFactory):
     """
     Generate the matrix for quaternion and angular velocity multiplication.
 
@@ -66,24 +66,24 @@ def G(quat, math: ArrayLikeFactory = NumpyLikeFactory):
     np.ndarray: The matrix for quaternion and angular velocity multiplication.
     """
 
-    return L(quat, math) @ H(math)
+    return left_mult(quat, math) @ H(math)
 
 
-def E(state, math: ArrayLikeFactory = NumpyLikeFactory):
+def state_tangent_map(state, math: ArrayLikeFactory = NumpyLikeFactory):
     """
-    Construct the state transition matrix for the quadrotor system.
+    Construct the state transition matrix for proper state space linearization
 
     Args:
-        state (npt.ArrayLike): The current state of the quadrotor system.
+        state (npt.ArrayLike): The current state of the system.
 
     Returns:
-        np.ndarray: A 13x12 state transition matrix.
+        np.ndarray: A (nq x nv) state transition matrix.
     """
     q = state[3:7]  # Orientation (quaternion)
 
     res = math.zeros((state.shape[0], state.shape[0] - 1)).array
     res[0:3, 0:3] = math.eye(3).array
-    res[3:7, 3:6] = G(q, math)
+    res[3:7, 3:6] = tangent_map(q, math)
     res[7:, 6:] = math.eye(state.shape[0] - 7).array
 
     return res

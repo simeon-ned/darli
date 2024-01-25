@@ -1,1 +1,1 @@
-from .quaternions import hat, L, H, E  # noqa: F401
+from .quaternions import hat, left_mult, H, state_tangent_map  # noqa: F401

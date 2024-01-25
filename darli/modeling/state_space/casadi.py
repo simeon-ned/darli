@@ -3,7 +3,7 @@ from ..base import ModelBase
 import casadi as cs
 from ...backend import CasadiBackend
 from ...arrays import CasadiLikeFactory
-from ...quaternions import E
+from ...quaternions import state_tangent_map
 
 
 class CasadiStateSpace(StateSpace):
@@ -18,12 +18,9 @@ class CasadiStateSpace(StateSpace):
         if self.model.nq == self.model.nv:
             return cs.jacobian(self.state_derivative, self.state)
 
-        print("darli", E(self.state, CasadiLikeFactory).T.shape)
-        return (
-            E(self.state, CasadiLikeFactory).T
-            @ cs.jacobian(self.state_derivative, self.state)
-            @ E(self.state, CasadiLikeFactory)
-        )
+        map = state_tangent_map(self.state, CasadiLikeFactory)
+
+        return map.T @ cs.jacobian(self.state_derivative, self.state) @ map
 
     @property
     def input_jacobian(self):
@@ -31,9 +28,9 @@ class CasadiStateSpace(StateSpace):
         if self.model.nq == self.model.nv:
             return cs.jacobian(self.state_derivative, self.model.qfrc_u)
 
-        return E(self.state, CasadiLikeFactory).T @ cs.jacobian(
-            self.state_derivative, self.model.qfrc_u
-        )
+        map = state_tangent_map(self.state, CasadiLikeFactory)
+
+        return map.T @ cs.jacobian(self.state_derivative, self.model.qfrc_u)
 
     def force_jacobian(self, body_name: str) -> cs.Function:
         # early quit if we have already computed the jacobian
@@ -50,10 +47,11 @@ class CasadiStateSpace(StateSpace):
         xdot = self.state_derivative
         body = self.model.body(body_name)
 
+        map = state_tangent_map(self.state, CasadiLikeFactory)
+
         if body_name not in self.force_jacobians:
             self.force_jacobians[body_name] = (
-                E(self.state, CasadiLikeFactory).T
-                @ cs.jacobian(xdot, body.contact.force)
+                map.T @ cs.jacobian(xdot, body.contact.force)
                 if self.model.nq != self.model.nv
                 else cs.jacobian(xdot, body.contact.force)
             )
