@@ -3,7 +3,7 @@ from ...backend import CasadiBackend
 import casadi as cs
 from typing import Dict
 from ...arrays import ArrayLike
-from ...quaternions import L, H
+from ...quaternions import left_mult, expand_map
 
 
 class StateSpace(StateSpaceBase):
@@ -53,8 +53,8 @@ class StateSpace(StateSpaceBase):
 
             quat_dot = (
                 0.5
-                * L(quat_changed, self.__model.backend.math)
-                @ H(self.__model.backend.math)
+                * left_mult(quat_changed, self.__model.backend.math)
+                @ expand_map(self.__model.backend.math)
                 @ omega
             )
 

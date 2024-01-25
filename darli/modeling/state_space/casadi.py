@@ -2,6 +2,8 @@ from .common import StateSpace
 from ..base import ModelBase
 import casadi as cs
 from ...backend import CasadiBackend
+from ...arrays import CasadiLikeFactory
+from ...quaternions import state_tangent_map
 
 
 class CasadiStateSpace(StateSpace):
@@ -12,11 +14,23 @@ class CasadiStateSpace(StateSpace):
 
     @property
     def state_jacobian(self):
-        return cs.jacobian(self.state_derivative, self.state)
+        # if not free flyer
+        if self.model.nq == self.model.nv:
+            return cs.jacobian(self.state_derivative, self.state)
+
+        map = state_tangent_map(self.state, CasadiLikeFactory)
+
+        return map.T @ cs.jacobian(self.state_derivative, self.state) @ map
 
     @property
     def input_jacobian(self):
-        return cs.jacobian(self.state_derivative, self.model.qfrc_u)
+        # if not free flyer
+        if self.model.nq == self.model.nv:
+            return cs.jacobian(self.state_derivative, self.model.qfrc_u)
+
+        map = state_tangent_map(self.state, CasadiLikeFactory)
+
+        return map.T @ cs.jacobian(self.state_derivative, self.model.qfrc_u)
 
     def force_jacobian(self, body_name: str) -> cs.Function:
         # early quit if we have already computed the jacobian
@@ -33,7 +47,13 @@ class CasadiStateSpace(StateSpace):
         xdot = self.state_derivative
         body = self.model.body(body_name)
 
+        map = state_tangent_map(self.state, CasadiLikeFactory)
+
         if body_name not in self.force_jacobians:
-            self.force_jacobians[body_name] = cs.jacobian(xdot, body.contact.force)
+            self.force_jacobians[body_name] = (
+                map.T @ cs.jacobian(xdot, body.contact.force)
+                if self.model.nq != self.model.nv
+                else cs.jacobian(xdot, body.contact.force)
+            )
 
         return self.force_jacobians[body_name]
