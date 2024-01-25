@@ -1,7 +1,16 @@
 from ..arrays import ArrayLikeFactory, NumpyLikeFactory
 
 
-def H(math: ArrayLikeFactory = NumpyLikeFactory):
+def expand_map(math: ArrayLikeFactory = NumpyLikeFactory):
+    """
+    Computes the expand map matrix for 3-dimensional vectors.
+
+    Args:
+        math: The math backend to use.
+
+    Returns:
+        The matrix which premultiplication adds a zero row before the input vector.
+    """
     H = math.zeros((4, 3)).array
     H[1:4, :] = math.eye(3).array
 
@@ -66,7 +75,7 @@ def tangent_map(quat, math: ArrayLikeFactory = NumpyLikeFactory):
     np.ndarray: The matrix for quaternion and angular velocity multiplication.
     """
 
-    return left_mult(quat, math) @ H(math)
+    return left_mult(quat, math) @ expand_map(math)
 
 
 def state_tangent_map(state, math: ArrayLikeFactory = NumpyLikeFactory):
