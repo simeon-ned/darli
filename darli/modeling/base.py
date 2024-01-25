@@ -113,9 +113,17 @@ class BodyBase(ABC):
     def jacobian(self) -> FrameQuantity:
         pass
 
+    @abstractmethod
+    def get_jacobian(self, frame: Frame) -> ArrayLike:
+        pass
+
     @property
     @abstractmethod
     def jacobian_dt(self) -> FrameQuantity:
+        pass
+
+    @abstractmethod
+    def get_jacobian_dt(self, frame: Frame) -> ArrayLike:
         pass
 
     @property
@@ -123,9 +131,17 @@ class BodyBase(ABC):
     def linear_velocity(self) -> FrameQuantity:
         pass
 
+    @abstractmethod
+    def get_linear_velocity(self, frame: Frame) -> ArrayLike:
+        pass
+
     @property
     @abstractmethod
     def angular_velocity(self) -> FrameQuantity:
+        pass
+
+    @abstractmethod
+    def get_angular_velocity(self, frame: Frame) -> ArrayLike:
         pass
 
     @property
@@ -133,9 +149,17 @@ class BodyBase(ABC):
     def linear_acceleration(self) -> FrameQuantity:
         pass
 
+    @abstractmethod
+    def get_linear_acceleration(self, frame: Frame) -> ArrayLike:
+        pass
+
     @property
     @abstractmethod
     def angular_acceleration(self) -> FrameQuantity:
+        pass
+
+    @abstractmethod
+    def get_angular_acceleration(self, frame: Frame) -> ArrayLike:
         pass
 
     @abstractmethod

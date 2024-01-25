@@ -200,6 +200,7 @@ class PinocchioBackend(BackendBase):
 
         self.__frame_types = self.__frame_mapping.keys()
 
+        self.__body_info_cache = {}
         self.update(self._q, self._v, self._dv, self._tau)
 
     @property
@@ -244,6 +245,9 @@ class PinocchioBackend(BackendBase):
             self.__centroidal_derivatives = pin.computeCentroidalDynamicsDerivatives(
                 self.__model, self.__data, self._q, self._v, self._dv
             )
+
+        # we have to clear body info cache
+        self.__body_info_cache = {}
 
     def rnea(
         self,
@@ -430,46 +434,49 @@ class PinocchioBackend(BackendBase):
         if body_urdf_name is None:
             body_urdf_name = body
 
+        # if we have cached information about body, clean it
+        if body_urdf_name in self.__body_info_cache:
+            return self.__body_info_cache[body_urdf_name]
+
         frame_idx = self.__model.getFrameId(body_urdf_name)
 
-        jacobian = {
-            Frame.from_str(frame): pin.getFrameJacobian(
+        jacobian = {}
+        djacobian = {}
+        lin_vel = {}
+        ang_vel = {}
+        lin_acc = {}
+        ang_acc = {}
+        for frame_str, fstr in self.__frame_mapping.items():
+            frame = Frame.from_str(frame_str)
+
+            jacobian[frame] = pin.getFrameJacobian(
                 self.__model, self.__data, frame_idx, fstr
             )
-            for frame, fstr in self.__frame_mapping.items()
-        }
-
-        djacobian = {
-            Frame.from_str(frame): pin.getFrameJacobianTimeVariation(
+            djacobian[frame] = pin.getFrameJacobianTimeVariation(
                 self.__model, self.__data, frame_idx, fstr
             )
-            for frame, fstr in self.__frame_mapping.items()
-        }
+            lin_vel[frame] = jacobian[frame][:3] @ self._v
+            ang_vel[frame] = jacobian[frame][3:] @ self._v
+            lin_acc[frame] = (
+                jacobian[frame][:3] @ self._dv + djacobian[frame][:3] @ self._v
+            )
+            ang_acc[frame] = (
+                jacobian[frame][3:] @ self._dv + djacobian[frame][3:] @ self._v
+            )
 
-        return BodyInfo(
+        result = BodyInfo(
             position=self.__data.oMf[frame_idx].translation,
             rotation=self.__data.oMf[frame_idx].rotation,
             jacobian=jacobian,
             djacobian=djacobian,
-            lin_vel={
-                Frame.from_str(frame): jacobian[Frame.from_str(frame)][:3] @ self._v
-                for frame in self.__frame_types
-            },
-            ang_vel={
-                Frame.from_str(frame): jacobian[Frame.from_str(frame)][3:] @ self._v
-                for frame in self.__frame_types
-            },
-            lin_acc={
-                Frame.from_str(frame): jacobian[Frame.from_str(frame)][:3] @ self._dv
-                + djacobian[Frame.from_str(frame)][:3] @ self._v
-                for frame in self.__frame_types
-            },
-            ang_acc={
-                Frame.from_str(frame): jacobian[Frame.from_str(frame)][3:] @ self._dv
-                + djacobian[Frame.from_str(frame)][3:] @ self._v
-                for frame in self.__frame_types
-            },
+            lin_vel=lin_vel,
+            ang_vel=ang_vel,
+            lin_acc=lin_acc,
+            ang_acc=ang_acc,
         )
+        self.__body_info_cache[body_urdf_name] = result
+
+        return result
 
     def cone(
         self, force: ArrayLike | None, mu: float, type: str, X=None, Y=None
