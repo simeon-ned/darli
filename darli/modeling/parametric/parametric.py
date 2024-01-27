@@ -131,13 +131,13 @@ class Parametric(ModelBase):
         self,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
-        tau: ArrayLike | None = None,
+        a: ArrayLike | None = None,
     ) -> ArrayLike:
         return (
             self._backend.torque_regressor(
                 q if q is not None else self._q,
                 v if v is not None else self._v,
-                tau if tau is not None else self._tau,
+                a if a is not None else self._dv,
             )
             @ self._parameters
         )
