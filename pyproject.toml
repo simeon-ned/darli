@@ -26,6 +26,7 @@ packages = [
     "darli.arrays",
     "darli.quaternions",
     "darli.modeling",
+    "darli.modeling.integrators",
     "darli.modeling.functional",
     "darli.modeling.state_space",
     "darli.modeling.parametric",

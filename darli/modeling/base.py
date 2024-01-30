@@ -347,11 +347,21 @@ class ModelBase(ABC):
     ) -> CentroidalDynamics:
         ...
 
+    @abstractmethod
+    def update(
+        self,
+        q: ArrayLike,
+        v: ArrayLike,
+        dv: ArrayLike | None = None,
+        u: ArrayLike | None = None,
+    ) -> ArrayLike:
+        ...
+
 
 class StateSpaceBase(ABC):
     @property
     @abstractmethod
-    def model(self):
+    def model(self) -> ModelBase:
         pass
 
     @property
@@ -364,9 +374,13 @@ class StateSpaceBase(ABC):
     def state(self):
         pass
 
-    @property
     @abstractmethod
-    def state_derivative(self):
+    def state_derivative(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        u: ArrayLike | None = None,
+    ):
         pass
 
     @property

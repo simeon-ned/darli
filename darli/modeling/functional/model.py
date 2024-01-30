@@ -369,3 +369,13 @@ class Functional(ModelBase):
         self.__centroidal = res
 
         return res
+
+    def update(
+        self,
+        q: ArrayLike,
+        v: ArrayLike,
+        dv: ArrayLike | None = None,
+        u: ArrayLike | None = None,
+    ) -> ArrayLike:
+        # dummy implementation to satisfy base class
+        return

@@ -1,6 +1,7 @@
 from ..state_space import CasadiStateSpace
-from ..base import ModelBase, StateSpaceBase
+from ..base import ModelBase, StateSpaceBase, ArrayLike
 import casadi as cs
+from ..integrators import Integrator, ForwardEuler
 
 
 class FunctionalStateSpace(StateSpaceBase):
@@ -44,7 +45,13 @@ class FunctionalStateSpace(StateSpaceBase):
                 self.__space.model.qfrc_u,
                 *self.__space.model.contact_forces,
             ],
-            [self.__space.state_derivative],
+            [
+                self.__space.state_derivative(
+                    self.__space.model.q,
+                    self.__space.model.v,
+                    self.__space.model.qfrc_u,
+                )
+            ],
             [
                 "q",
                 "v",
@@ -52,6 +59,40 @@ class FunctionalStateSpace(StateSpaceBase):
                 *self.__space.model.contact_names,
             ],
             ["state_derivative"],
+        )
+
+    def rollout(
+        self,
+        dt: cs.SX,
+        n_steps: cs.SX,
+        integrator: Integrator = ForwardEuler,
+    ) -> cs.Function:
+        return cs.Function(
+            "rollout",
+            [
+                self.__space.state,
+                self.__space.model.qfrc_u,
+                *self.__space.model.contact_forces,
+                dt,
+                n_steps,
+            ],
+            [
+                self.__space.rollout(
+                    self.__space.state,
+                    self.__space.__model.qfrc_u,
+                    dt,
+                    n_steps,
+                    integrator,
+                )
+            ],
+            [
+                "state",
+                "tau",
+                *self.__space.model.contact_names,
+                "dt",
+                "n_steps",
+            ],
+            ["next_state"],
         )
 
     @property
