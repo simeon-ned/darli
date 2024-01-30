@@ -14,10 +14,10 @@ class RK4(Integrator):
         nq = state_space.model.nq
 
         # integrate velocity using runge-kutta method
-        def vdot_func(x):
+        def xdot_func(x):
             return state_space.state_derivative(x[:nq], x[nq:], qfrc_u)
 
-        return x0 + RK4.__step(x0, dt, vdot_func)
+        return x0 + RK4.__step(x0, dt, xdot_func)
 
     @staticmethod
     def __step(y0, h, dydt: Callable[[ArrayLike, ArrayLike], ArrayLike]) -> ArrayLike:
