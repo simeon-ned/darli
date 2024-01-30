@@ -492,7 +492,7 @@ class PinocchioBackend(BackendBase):
         return pin.integrate(
             self.__model,
             q if q is not None else self._q,
-            v if v * dt is not None else self._v * dt,
+            v * dt if v is not None else self._v * dt,
         )
 
     def centroidal_dynamics(
