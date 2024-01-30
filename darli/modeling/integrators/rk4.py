@@ -13,7 +13,7 @@ class RK4(Integrator):
     ):
         nq = state_space.model.nq
 
-        # integrate velocity using runge-kutta method
+        # integrate state using runge-kutta method
         def xdot_func(x):
             return state_space.state_derivative(x[:nq], x[nq:], qfrc_u)
 
