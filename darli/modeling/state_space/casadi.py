@@ -16,21 +16,21 @@ class CasadiStateSpace(StateSpace):
     def state_jacobian(self):
         # if not free flyer
         if self.model.nq == self.model.nv:
-            return cs.jacobian(self.state_derivative, self.state)
+            return cs.jacobian(self.time_variation(), self.state)
 
         map = state_tangent_map(self.state, CasadiLikeFactory)
 
-        return map.T @ cs.jacobian(self.state_derivative, self.state) @ map
+        return map.T @ cs.jacobian(self.time_variation(), self.state) @ map
 
     @property
     def input_jacobian(self):
         # if not free flyer
         if self.model.nq == self.model.nv:
-            return cs.jacobian(self.state_derivative, self.model.qfrc_u)
+            return cs.jacobian(self.time_variation(), self.model.qfrc_u)
 
         map = state_tangent_map(self.state, CasadiLikeFactory)
 
-        return map.T @ cs.jacobian(self.state_derivative, self.model.qfrc_u)
+        return map.T @ cs.jacobian(self.time_variation(), self.model.qfrc_u)
 
     def force_jacobian(self, body_name: str) -> cs.Function:
         # early quit if we have already computed the jacobian
@@ -44,7 +44,7 @@ class CasadiStateSpace(StateSpace):
         if self.model.bodies[body_name].contact is None:
             raise KeyError(f"Body {body_name} has no contact")
 
-        xdot = self.state_derivative
+        xdot = self.time_variation()
         body = self.model.body(body_name)
 
         map = state_tangent_map(self.state, CasadiLikeFactory)

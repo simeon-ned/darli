@@ -121,7 +121,7 @@ class Robot(ModelBase):
         # update current dv and qfrc_u
         self._dv = self._backend._dv
         self._qfrc_u = self._backend._tau
-        if u:
+        if u is not None:
             self._u = u
 
         # update bodies
