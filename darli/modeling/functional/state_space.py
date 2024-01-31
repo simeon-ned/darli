@@ -73,13 +73,11 @@ class FunctionalStateSpace(StateSpaceBase):
                 self.__space.state,
                 self.__space.model.qfrc_u,
                 *self.__space.model.contact_forces,
-                dt,
-                n_steps,
             ],
             [
                 self.__space.rollout(
                     self.__space.state,
-                    self.__space.__model.qfrc_u,
+                    self.__space.model.qfrc_u,
                     dt,
                     n_steps,
                     integrator,
@@ -89,8 +87,6 @@ class FunctionalStateSpace(StateSpaceBase):
                 "state",
                 "tau",
                 *self.__space.model.contact_names,
-                "dt",
-                "n_steps",
             ],
             ["next_state"],
         )
