@@ -36,9 +36,9 @@ class FunctionalStateSpace(StateSpaceBase):
         )
 
     @property
-    def state_derivative(self):
+    def derivative(self):
         return cs.Function(
-            "state_derivative",
+            "derivative",
             [
                 self.__space.model.q,
                 self.__space.model.v,
@@ -46,7 +46,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 *self.__space.model.contact_forces,
             ],
             [
-                self.__space.state_derivative(
+                self.__space.derivative(
                     self.__space.model.q,
                     self.__space.model.v,
                     self.__space.model.qfrc_u,
@@ -58,34 +58,76 @@ class FunctionalStateSpace(StateSpaceBase):
                 "tau",
                 *self.__space.model.contact_names,
             ],
-            ["state_derivative"],
+            ["derivative"],
+        )
+
+    @property
+    def time_variation(self):
+        return cs.Function(
+            "time_variation",
+            [
+                self.__space.model.q,
+                self.__space.model.v,
+                self.__space.model.qfrc_u,
+                *self.__space.model.contact_forces,
+            ],
+            [
+                self.__space.time_variation(
+                    self.__space.model.q,
+                    self.__space.model.v,
+                    self.__space.model.qfrc_u,
+                )
+            ],
+            [
+                "q",
+                "v",
+                "tau",
+                *self.__space.model.contact_names,
+            ],
+            ["time_variation"],
         )
 
     def rollout(
         self,
-        dt: cs.SX,
-        n_steps: cs.SX,
+        dt: float,
+        n_steps: int,
+        control_sampling: float | None = None,
         integrator: Integrator = ForwardEuler,
     ) -> cs.Function:
+        if control_sampling is None:
+            control_sampling = dt
+
+        control_dim = int(n_steps * dt / control_sampling)
+        container = self.__space.model.backend.math.zeros(
+            (self.__space.model.nu, control_dim)
+        ).array
+
+        for i in range(control_dim):
+            var = self.__space.model.backend.math.array(
+                f"control_{i}", self.__space.model.nu
+            ).array
+            container[:, i] = var
+
         return cs.Function(
             "rollout",
             [
                 self.__space.state,
-                self.__space.model.qfrc_u,
+                container,
                 *self.__space.model.contact_forces,
             ],
             [
                 self.__space.rollout(
                     self.__space.state,
-                    self.__space.model.qfrc_u,
+                    container,
                     dt,
                     n_steps,
+                    control_sampling,
                     integrator,
                 )
             ],
             [
                 "state",
-                "tau",
+                "controls",
                 *self.__space.model.contact_names,
             ],
             ["next_state"],

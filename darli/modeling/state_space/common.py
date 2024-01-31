@@ -31,7 +31,21 @@ class StateSpace(StateSpaceBase):
 
         return container
 
-    def state_derivative(
+    def derivative(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        u: ArrayLike | None = None,
+    ):
+        nv = self.__model.nv
+
+        container = self.model.backend.math.zeros(2 * nv)
+        container[:nv] = v
+        container[nv:] = self.model.forward_dynamics(q, v, u)
+
+        return container.array
+
+    def time_variation(
         self,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
@@ -79,20 +93,15 @@ class StateSpace(StateSpaceBase):
             return container
         else:
             # fixed-base case
-            container = self.__model.backend.math.zeros(
-                self.__model.nv + self.__model.nv
-            ).array
-            container[: self.__model.nv] = self.__model.v
-            container[self.__model.nv :] = self.__model.forward_dynamics()
-
-            return container
+            return self.derivative(q, v, u)
 
     def rollout(
         self,
         state: ArrayLike,
-        control: ArrayLike,
+        controls: ArrayLike,
         dt: cs.SX | float,
         n_steps: int,
+        control_sampling: cs.SX | float | None = None,
         integrator: Integrator = ForwardEuler,
     ) -> ArrayLike:
         """
@@ -104,13 +113,34 @@ class StateSpace(StateSpaceBase):
         input: input
         dt: time step
         n_steps: number of steps to propagate
+        control_sampling: time step for control, by default matches dt
+        integrator: integrator to use, by default ForwardEuler
 
         Returns
         -------
         state: propagated state
         """
+        if control_sampling is None:
+            control_sampling = dt
+
+        assert controls.shape[1] == int(
+            n_steps * dt / control_sampling
+        ), f"We expect controls to have shape[1] = {int(n_steps * dt / control_sampling)}, but got {controls.shape[1]}"
+
+        time = 0
+        control_i = 0
+        control_time = 0
+
         for _ in range(n_steps):
+            # take next control if time
+            if control_time + control_sampling < time:
+                control_i += 1
+                control_time += control_sampling
+
+            control = controls[:, control_i]
             state = integrator.forward(self, state, control, dt)
+
+            time += dt
 
         return state
 

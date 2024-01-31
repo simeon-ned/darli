@@ -13,14 +13,6 @@ class RK4(Integrator):
         nq = state_space.model.nq
         nv = state_space.model.nv
 
-        def state_dot(x, u):
-            """return nv*2 vector of state derivative"""
-            container = state_space.model.backend.math.zeros(2 * nv)
-            container[:nv] = x[nq:]
-            container[nv:] = state_space.model.forward_dynamics(x[:nq], x[nq:], u)
-
-            return container.array
-
         def tangent_int(x, tang_x):
             """tangent integration of state by its increment"""
 
@@ -37,9 +29,15 @@ class RK4(Integrator):
 
             return container.array
 
-        k1 = state_dot(x0, qfrc_u)
-        k2 = state_dot(tangent_int(x0, 0.5 * h * k1), qfrc_u)
-        k3 = state_dot(tangent_int(x0, 0.5 * h * k2), qfrc_u)
-        k4 = state_dot(tangent_int(x0, h * k3), qfrc_u)
+        k1 = state_space.derivative(x0[:nq], x0[nq:], qfrc_u)
+
+        k2_ = tangent_int(x0, 0.5 * h * k1)
+        k2 = state_space.derivative(k2_[:nq], k2_[nq:], qfrc_u)
+
+        k3_ = tangent_int(x0, 0.5 * h * k2)
+        k3 = state_space.derivative(k3_[:nq], k3_[nq:], qfrc_u)
+
+        k4_ = tangent_int(x0, h * k3)
+        k4 = state_space.derivative(k4_[:nq], k4_[nq:], qfrc_u)
 
         return tangent_int(x0, (h / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4))

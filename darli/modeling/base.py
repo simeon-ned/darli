@@ -375,7 +375,16 @@ class StateSpaceBase(ABC):
         pass
 
     @abstractmethod
-    def state_derivative(
+    def time_variation(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        u: ArrayLike | None = None,
+    ):
+        pass
+
+    @abstractmethod
+    def derivative(
         self,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
