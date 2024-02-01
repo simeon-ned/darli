@@ -360,6 +360,10 @@ class ModelBase(ABC):
 
 class StateSpaceBase(ABC):
     @property
+    def integrator(self):
+        pass
+
+    @property
     @abstractmethod
     def model(self) -> ModelBase:
         pass

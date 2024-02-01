@@ -485,9 +485,9 @@ class PinocchioBackend(BackendBase):
 
     def integrate_configuration(
         self,
-        dt: float,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
+        dt: float = 1.0,
     ) -> ArrayLike:
         return pin.integrate(
             self.__model,

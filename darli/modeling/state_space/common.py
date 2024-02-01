@@ -11,11 +11,19 @@ class StateSpace(StateSpaceBase):
     def __init__(self, model: ModelBase) -> None:
         self.__model: ModelBase = model
 
+        self.__integrator: Integrator = ForwardEuler(self.__model)
         self.__force_jacobians: Dict[str, ArrayLike] = {}
+
+    def set_integrator(self, integrator: Integrator):
+        self.__integrator = integrator(self.__model)
 
     @property
     def model(self):
         return self.__model
+
+    @property
+    def integrator(self):
+        return self.__integrator
 
     @property
     def force_jacobians(self):
@@ -102,7 +110,6 @@ class StateSpace(StateSpaceBase):
         dt: cs.SX | float,
         n_steps: int,
         control_sampling: cs.SX | float | None = None,
-        integrator: Integrator = ForwardEuler,
     ) -> ArrayLike:
         """
         Rollout function propagates the state forward in time using the input and the state derivative
@@ -138,7 +145,7 @@ class StateSpace(StateSpaceBase):
                 control_time += control_sampling
 
             control = controls[:, control_i]
-            state = integrator.forward(self, state, control, dt)
+            state = self.__integrator.forward(self.derivative, state, control, dt)
 
             time += dt
 
