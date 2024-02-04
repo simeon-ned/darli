@@ -2,7 +2,7 @@ from ..state_space import CasadiStateSpace
 from ..base import ModelBase, StateSpaceBase, ArrayLike
 import casadi as cs
 from ..integrators import Integrator
-
+from typing import Type
 
 class FunctionalStateSpace(StateSpaceBase):
     def __init__(
@@ -15,8 +15,18 @@ class FunctionalStateSpace(StateSpaceBase):
         else:
             self.__space = CasadiStateSpace(model)
 
-    def set_integrator(self, integrator: Integrator):
-        return self.__space.set_integrator(integrator)
+    def set_integrator(self, integrator_cls: Type[Integrator]):
+        """
+        Set the integrator for the system using the provided Integrator class.
+
+        Args:
+            integrator_cls (Type[Integrator]): The class (constructor) of the integrator to be used.
+        
+        Returns:
+            The result of setting the integrator in the underlying state space.
+        """
+        return self.__space.set_integrator(integrator_cls)
+    
 
     @classmethod
     def from_space(cls, space: CasadiStateSpace):

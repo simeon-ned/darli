@@ -1,30 +1,57 @@
 """Module for RK4 integrator"""
-from .base import Integrator, StateSpaceBase, ArrayLike, cs
-
+from .base import Integrator, ModelBase, ArrayLike, cs
+from typing import Callable
 
 class RK4(Integrator):
-    def __init__(self, state_space: StateSpaceBase):
-        super().__init__(state_space)
+    """
+    Implements the Runge-Kutta 4th order (RK4) method.
 
+    This implementation of RK4 is capable of handling systems that evolve not just in 
+    Euclidean space but also on manifolds. This is particularly useful for 
+    models that include rotational dynamics, where the state variables (such as 
+    quaternions) evolve on a manifold.
+    """
+    
+    def __init__(self, model: ModelBase):
+        """
+        Initialize the RK4 integrator with a model that defines system dynamics,
+        possibly on a manifold (quaternions in floating base).
+
+        Args:
+            model (ModelBase): The DARLI model providing the system dynamics.
+        """
+        super().__init__(model)
+        
     def forward(
         self,
-        derivative: ArrayLike,
         x0: ArrayLike,
-        qfrc_u: ArrayLike,
+        u: ArrayLike,
         dt: cs.SX | float,
-    ):
+    ) -> ArrayLike:
+        """
+        Perform a single RK4 integration step, suitable for state spaces that 
+        might include manifolds (floating base).
 
-        k1_log = derivative(x0[: self.nq], x0[self.nq :], qfrc_u)
+        Args:
+            derivative: A function that computes the tangent of the state.
+            x0: Initial state vector, which may include manifold-valued components.
+            u: Inputs forces acting on the system.
+            dt: Time step for integration.
 
+        Returns:
+            The estimated state vector after the RK4 integration step.
+        """
+
+        # Calculate the four increments from the derivative function
+        k1_log = self.derivative(x0, u)
         k2_exp = self.tangent_step(x0, 0.5 * dt * k1_log)
-        k2_log = derivative(k2_exp[: self.nq], k2_exp[self.nq :], qfrc_u)
-
+        k2_log = self.derivative(k2_exp, u)
         k3_exp = self.tangent_step(x0, 0.5 * dt * k2_log)
-        k3_log = derivative(k3_exp[: self.nq], k3_exp[self.nq :], qfrc_u)
-
+        k3_log = self.derivative(k3_exp, u)
         k4_exp = self.tangent_step(x0, dt * k3_log)
-        k4_log = derivative(k4_exp[: self.nq], k4_exp[self.nq :], qfrc_u)
-
+        k4_log = self.derivative(k4_exp, u)
+        
+        # Combine the four increments for the final state estimate
         return self.tangent_step(
             x0, (dt / 6.0) * (k1_log + 2 * k2_log + 2 * k3_log + k4_log)
         )

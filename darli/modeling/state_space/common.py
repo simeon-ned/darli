@@ -44,14 +44,14 @@ class StateSpace(StateSpaceBase):
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
         u: ArrayLike | None = None,
-    ):
+    ) -> ArrayLike: 
         nv = self.__model.nv
-
+        
         container = self.model.backend.math.zeros(2 * nv)
-        container[:nv] = v
-        container[nv:] = self.model.forward_dynamics(q, v, u)
+        container[:self.__model.nq] = q
+        container[self.__model.nq:] = v
 
-        return container.array
+        return self.__integrator.derivative(container.array, u)
 
     def time_variation(
         self,
@@ -145,7 +145,7 @@ class StateSpace(StateSpaceBase):
                 control_time += control_sampling
 
             control = controls[:, control_i]
-            state = self.__integrator.forward(self.derivative, state, control, dt)
+            state = self.__integrator.forward(state, control, dt)
 
             time += dt
 
