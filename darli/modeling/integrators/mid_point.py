@@ -2,15 +2,17 @@
 from .base import Integrator, ModelBase, ArrayLike, cs
 from typing import Callable
 
+
 class MidPoint(Integrator):
     """
     Implements the Midpoint method for numerical integration.
 
-    The Midpoint method is a second-order method that computes the derivative 
-    at the midpoint of the interval to update the state. It provides a better 
-    approximation than the Euler method with modest computational requirements. 
+    The Midpoint method is a second-order method that computes the derivative
+    at the midpoint of the interval to update the state. It provides a better
+    approximation than the Euler method with modest computational requirements.
     This method can handle systems with state spaces that include manifolds.
     """
+
     def __init__(self, model: ModelBase):
         """
         Initialize the Midpoint integrator with a model that defines system dynamics,

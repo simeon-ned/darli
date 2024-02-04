@@ -44,12 +44,12 @@ class StateSpace(StateSpaceBase):
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
         u: ArrayLike | None = None,
-    ) -> ArrayLike: 
+    ) -> ArrayLike:
         nv = self.__model.nv
-        
+
         container = self.model.backend.math.zeros(2 * nv)
-        container[:self.__model.nq] = q
-        container[self.__model.nq:] = v
+        container[: self.__model.nq] = q
+        container[self.__model.nq :] = v
 
         return self.__integrator.derivative(container.array, u)
 

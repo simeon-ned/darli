@@ -3,13 +3,14 @@
 from .base import Integrator, ModelBase, ArrayLike, cs
 from typing import Callable
 
+
 class ForwardEuler(Integrator):
     """
     Implements the Euler method for numerical integration.
 
-    The Euler method is a simple first-order integration method that updates 
-    the state by taking a single step forward using the derivative of the 
-    state at the current position. This method can be used for systems 
+    The Euler method is a simple first-order integration method that updates
+    the state by taking a single step forward using the derivative of the
+    state at the current position. This method can be used for systems
     evolving on manifolds and is computationally less intensive than higher-order methods.
     """
 
@@ -22,7 +23,7 @@ class ForwardEuler(Integrator):
             model (ModelBase): The DARLI model providing the system dynamics.
         """
         super().__init__(model)
-        
+
     def forward(
         self,
         x0: ArrayLike,
@@ -45,8 +46,8 @@ class ForwardEuler(Integrator):
         # Calculate the derivative at the current position
         log = self.derivative(x0, u)
 
-        # Update the state on manifold by taking a step along the tangent 
+        # Update the state on manifold by taking a step along the tangent
         # and projecting back onto the manifold
         exp = self.tangent_step(x0, dt * log)
-        
+
         return exp

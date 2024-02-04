@@ -2,16 +2,17 @@
 from .base import Integrator, ModelBase, ArrayLike, cs
 from typing import Callable
 
+
 class RK4(Integrator):
     """
     Implements the Runge-Kutta 4th order (RK4) method.
 
-    This implementation of RK4 is capable of handling systems that evolve not just in 
-    Euclidean space but also on manifolds. This is particularly useful for 
-    models that include rotational dynamics, where the state variables (such as 
+    This implementation of RK4 is capable of handling systems that evolve not just in
+    Euclidean space but also on manifolds. This is particularly useful for
+    models that include rotational dynamics, where the state variables (such as
     quaternions) evolve on a manifold.
     """
-    
+
     def __init__(self, model: ModelBase):
         """
         Initialize the RK4 integrator with a model that defines system dynamics,
@@ -21,7 +22,7 @@ class RK4(Integrator):
             model (ModelBase): The DARLI model providing the system dynamics.
         """
         super().__init__(model)
-        
+
     def forward(
         self,
         x0: ArrayLike,
@@ -29,7 +30,7 @@ class RK4(Integrator):
         dt: cs.SX | float,
     ) -> ArrayLike:
         """
-        Perform a single RK4 integration step, suitable for state spaces that 
+        Perform a single RK4 integration step, suitable for state spaces that
         might include manifolds (floating base).
 
         Args:
@@ -50,7 +51,7 @@ class RK4(Integrator):
         k3_log = self.derivative(k3_exp, u)
         k4_exp = self.tangent_step(x0, dt * k3_log)
         k4_log = self.derivative(k4_exp, u)
-        
+
         # Combine the four increments for the final state estimate
         return self.tangent_step(
             x0, (dt / 6.0) * (k1_log + 2 * k2_log + 2 * k3_log + k4_log)

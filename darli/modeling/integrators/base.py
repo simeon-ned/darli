@@ -6,11 +6,13 @@ from ...arrays import ArrayLike
 import casadi as cs
 from typing import Callable
 
+
 class IntegratorBase(ABC):
     """
     Abstract base class for integrators.
     This class provides the interface that all derived integrator classes should implement.
     """
+
     def __init__(self, model: ModelBase):
         """
         Initialize the IntegratorBase with a model of the dynamic system.
@@ -34,20 +36,17 @@ class IntegratorBase(ABC):
         """
 
     @abstractmethod
-    def forward(self, 
-                x0: ArrayLike,
-                u: ArrayLike,
-                dt: float | cs.SX) -> ArrayLike:
+    def forward(self, x0: ArrayLike, u: ArrayLike, dt: float | cs.SX) -> ArrayLike:
         """
         Abstract method to perform a forward integration step.
 
         Args:
-            derivative (Callable[[ArrayLike, ArrayLike, ArrayLike], ArrayLike]): 
+            derivative (Callable[[ArrayLike, ArrayLike, ArrayLike], ArrayLike]):
                 A function that computes the tangent of the state.
-            x0 (ArrayLike): 
+            x0 (ArrayLike):
                 The initial state from which to start the integration.
             u (ArrayLike): The input forces affecting the system's dynamics.
-            dt (float | cs.SX): 
+            dt (float | cs.SX):
                 The timestep over which to integrate.
 
         Returns:
@@ -56,7 +55,7 @@ class IntegratorBase(ABC):
 
     def derivative(self, x: ArrayLike, u: ArrayLike) -> ArrayLike:
         """Calculate the derivative (tangent) of the state vector for particular model"""
-        
+
 
 class Integrator(IntegratorBase):
     def __init__(self, model: ModelBase):
@@ -86,15 +85,17 @@ class Integrator(IntegratorBase):
         # Create a container for the new state
         container = self.__model.backend.math.zeros(self.nq + self.nv)
         # Integrate configuration on the manifold
-        container[:self.nq] = self.__manifold_integrate(q=x[:self.nq], v=tang_x[:self.nv])
+        container[: self.nq] = self.__manifold_integrate(
+            q=x[: self.nq], v=tang_x[: self.nv]
+        )
         # Velocity and acceleration are simply updated
-        container[self.nq:] = x[self.nq:] + tang_x[self.nv:]
+        container[self.nq :] = x[self.nq :] + tang_x[self.nv :]
 
         return container.array
 
     def derivative(self, x: ArrayLike, u: ArrayLike) -> ArrayLike:
-        q, v = x[:self.nq], x[self.nq:]
+        q, v = x[: self.nq], x[self.nq :]
         container = self.__model.backend.math.zeros(2 * self.nv)
-        container[:self.nv] = v
-        container[self.nv:] = self.__model.forward_dynamics(q, v, u)
+        container[: self.nv] = v
+        container[self.nv :] = self.__model.forward_dynamics(q, v, u)
         return container.array
