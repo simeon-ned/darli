@@ -6,6 +6,9 @@ from ...arrays import ArrayLike
 from ...quaternions import left_mult, expand_map
 from ..integrators import Integrator, ForwardEuler
 
+# state_space.discretize -> DiscreteStateSpace 
+
+# DiscreteStateSpace(model)
 
 class StateSpace(StateSpaceBase):
     def __init__(self, model: ModelBase) -> None:
