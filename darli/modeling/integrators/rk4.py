@@ -1,43 +1,58 @@
 """Module for RK4 integrator"""
-from .base import Integrator, StateSpaceBase, ArrayLike, cs
+from .base import Integrator, ModelBase, ArrayLike, cs
+from typing import Callable
 
 
 class RK4(Integrator):
-    @staticmethod
+    """
+    Implements the Runge-Kutta 4th order (RK4) method.
+
+    This implementation of RK4 is capable of handling systems that evolve not just in
+    Euclidean space but also on manifolds. This is particularly useful for
+    models that include rotational dynamics, where the state variables (such as
+    quaternions) evolve on a manifold.
+    """
+
+    def __init__(self, model: ModelBase):
+        """
+        Initialize the RK4 integrator with a model that defines system dynamics,
+        possibly on a manifold (quaternions in floating base).
+
+        Args:
+            model (ModelBase): The DARLI model providing the system dynamics.
+        """
+        super().__init__(model)
+
     def forward(
-        state_space: StateSpaceBase,
+        self,
         x0: ArrayLike,
-        qfrc_u: ArrayLike,
-        h: cs.SX | float,
-    ):
-        nq = state_space.model.nq
-        nv = state_space.model.nv
+        u: ArrayLike,
+        dt: cs.SX | float,
+    ) -> ArrayLike:
+        """
+        Perform a single RK4 integration step, suitable for state spaces that
+        might include manifolds (floating base).
 
-        def tangent_int(x, tang_x):
-            """tangent integration of state by its increment"""
+        Args:
+            derivative: A function that computes the tangent of the state.
+            x0: Initial state vector, which may include manifold-valued components.
+            u: Inputs forces acting on the system.
+            dt: Time step for integration.
 
-            # simplify notation for integration on manifold
-            manifold_int = state_space.model.backend.integrate_configuration
+        Returns:
+            The estimated state vector after the RK4 integration step.
+        """
 
-            container = state_space.model.backend.math.zeros(nq + nv)
+        # Calculate the four increments from the derivative function
+        k1_log = self.derivative(x0, u)
+        k2_exp = self.tangent_step(x0, 0.5 * dt * k1_log)
+        k2_log = self.derivative(k2_exp, u)
+        k3_exp = self.tangent_step(x0, 0.5 * dt * k2_log)
+        k3_log = self.derivative(k3_exp, u)
+        k4_exp = self.tangent_step(x0, dt * k3_log)
+        k4_log = self.derivative(k4_exp, u)
 
-            # configuration is integrated on manifold using pinocchio implementation
-            container[:nq] = manifold_int(h, x[:nq], tang_x[nv:])
-
-            # velocity and acceleration are in the same space and do not require specific treatment
-            container[nq:] = x[nq:] + h * tang_x[nv:]
-
-            return container.array
-
-        k1 = state_space.derivative(x0[:nq], x0[nq:], qfrc_u)
-
-        k2_ = tangent_int(x0, 0.5 * h * k1)
-        k2 = state_space.derivative(k2_[:nq], k2_[nq:], qfrc_u)
-
-        k3_ = tangent_int(x0, 0.5 * h * k2)
-        k3 = state_space.derivative(k3_[:nq], k3_[nq:], qfrc_u)
-
-        k4_ = tangent_int(x0, h * k3)
-        k4 = state_space.derivative(k4_[:nq], k4_[nq:], qfrc_u)
-
-        return tangent_int(x0, (h / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4))
+        # Combine the four increments for the final state estimate
+        return self.tangent_step(
+            x0, (dt / 6.0) * (k1_log + 2 * k2_log + 2 * k3_log + k4_log)
+        )

@@ -1,6 +1,18 @@
 from ..arrays import ArrayLikeFactory, NumpyLikeFactory
 
 
+# CBF
+# h(q) >= 0 
+# ddh + beta*dh + alpha*h >= 0
+# J dv + Jdot@v + beta*J@v + alpha*h >= 0 
+# 
+# Collision 
+# 
+# Jdot = (J_now - J_prev)/dt
+
+
+# Make it scalar last
+
 def expand_map(math: ArrayLikeFactory = NumpyLikeFactory):
     """
     Computes the expand map matrix for 3-dimensional vectors.

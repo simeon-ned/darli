@@ -1,31 +1,53 @@
-"""Module for forward euler integrator"""
-from .base import Integrator, StateSpaceBase, ArrayLike, cs
+"""Module for forward euler integrator."""
+
+from .base import Integrator, ModelBase, ArrayLike, cs
+from typing import Callable
 
 
 class ForwardEuler(Integrator):
-    @staticmethod
+    """
+    Implements the Euler method for numerical integration.
+
+    The Euler method is a simple first-order integration method that updates
+    the state by taking a single step forward using the derivative of the
+    state at the current position. This method can be used for systems
+    evolving on manifolds and is computationally less intensive than higher-order methods.
+    """
+
+    def __init__(self, model: ModelBase):
+        """
+        Initialize the Euler integrator with a model that defines system dynamics,
+        which may include evolution on a manifold.
+
+        Args:
+            model (ModelBase): The DARLI model providing the system dynamics.
+        """
+        super().__init__(model)
+
     def forward(
-        state_space: StateSpaceBase,
+        self,
         x0: ArrayLike,
-        qfrc_u: ArrayLike,
+        u: ArrayLike,
         dt: cs.SX | float,
-    ):
-        nq = state_space.model.nq
-        nv = state_space.model.nv
+    ) -> ArrayLike:
+        """
+        Perform a single Euler integration step.
 
-        q, v = x0[:nq], x0[nq:]
-        vdot = state_space.model.forward_dynamics(q, v, qfrc_u)
+        Args:
+            derivative: A function that computes the tangent of the state.
+            x0: Initial state vector, which may include manifold-valued components.
+            u: Inputs forces acting on the system.
+            dt: Time step for integration.
 
-        # forward euler to integrate velocity
-        integrated_v = v + dt * vdot
+        Returns:
+            The estimated state vector after the Euler integration step.
+        """
 
-        # pinocchio fancy lie-group integration
-        integrated_q = state_space.model.backend.integrate_configuration(
-            dt, q, integrated_v
-        )
+        # Calculate the derivative at the current position
+        log = self.derivative(x0, u)
 
-        container = state_space.model.backend.math.zeros(nq + nv).array
-        container[:nq] = integrated_q
-        container[nq:] = integrated_v
+        # Update the state on manifold by taking a step along the tangent
+        # and projecting back onto the manifold
+        exp = self.tangent_step(x0, dt * log)
 
-        return container
+        return exp

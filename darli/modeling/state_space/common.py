@@ -6,16 +6,27 @@ from ...arrays import ArrayLike
 from ...quaternions import left_mult, expand_map
 from ..integrators import Integrator, ForwardEuler
 
+# state_space.discretize -> DiscreteStateSpace 
+
+# DiscreteStateSpace(model)
 
 class StateSpace(StateSpaceBase):
     def __init__(self, model: ModelBase) -> None:
         self.__model: ModelBase = model
 
+        self.__integrator: Integrator = ForwardEuler(self.__model)
         self.__force_jacobians: Dict[str, ArrayLike] = {}
+
+    def set_integrator(self, integrator: Integrator):
+        self.__integrator = integrator(self.__model)
 
     @property
     def model(self):
         return self.__model
+
+    @property
+    def integrator(self):
+        return self.__integrator
 
     @property
     def force_jacobians(self):
@@ -36,14 +47,14 @@ class StateSpace(StateSpaceBase):
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
         u: ArrayLike | None = None,
-    ):
+    ) -> ArrayLike:
         nv = self.__model.nv
 
         container = self.model.backend.math.zeros(2 * nv)
-        container[:nv] = v
-        container[nv:] = self.model.forward_dynamics(q, v, u)
+        container[: self.__model.nq] = q
+        container[self.__model.nq :] = v
 
-        return container.array
+        return self.__integrator.derivative(container.array, u)
 
     def time_variation(
         self,
@@ -102,7 +113,6 @@ class StateSpace(StateSpaceBase):
         dt: cs.SX | float,
         n_steps: int,
         control_sampling: cs.SX | float | None = None,
-        integrator: Integrator = ForwardEuler,
     ) -> ArrayLike:
         """
         Rollout function propagates the state forward in time using the input and the state derivative
@@ -138,7 +148,7 @@ class StateSpace(StateSpaceBase):
                 control_time += control_sampling
 
             control = controls[:, control_i]
-            state = integrator.forward(self, state, control, dt)
+            state = self.__integrator.forward(state, control, dt)
 
             time += dt
 

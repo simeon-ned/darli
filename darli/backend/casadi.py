@@ -374,9 +374,9 @@ class CasadiBackend(BackendBase):
 
     def integrate_configuration(
         self,
-        dt: float | cs.SX,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
+        dt: float | cs.SX = 1.0,
     ) -> ArrayLike:
         return self.__kindyn.integrate()(
             q=q if q is not None else self._q,

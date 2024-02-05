@@ -1,7 +1,8 @@
 from ..state_space import CasadiStateSpace
 from ..base import ModelBase, StateSpaceBase, ArrayLike
 import casadi as cs
-from ..integrators import Integrator, ForwardEuler
+from ..integrators import Integrator
+from typing import Type
 
 
 class FunctionalStateSpace(StateSpaceBase):
@@ -14,6 +15,18 @@ class FunctionalStateSpace(StateSpaceBase):
             self.__space = space
         else:
             self.__space = CasadiStateSpace(model)
+
+    def set_integrator(self, integrator_cls: Type[Integrator]):
+        """
+        Set the integrator for the system using the provided Integrator class.
+
+        Args:
+            integrator_cls (Type[Integrator]): The class (constructor) of the integrator to be used.
+
+        Returns:
+            The result of setting the integrator in the underlying state space.
+        """
+        return self.__space.set_integrator(integrator_cls)
 
     @classmethod
     def from_space(cls, space: CasadiStateSpace):
@@ -88,11 +101,7 @@ class FunctionalStateSpace(StateSpaceBase):
         )
 
     def rollout(
-        self,
-        dt: float,
-        n_steps: int,
-        control_sampling: float | None = None,
-        integrator: Integrator = ForwardEuler,
+        self, dt: float, n_steps: int, control_sampling: float | None = None
     ) -> cs.Function:
         if control_sampling is None:
             control_sampling = dt
@@ -117,12 +126,7 @@ class FunctionalStateSpace(StateSpaceBase):
             ],
             [
                 self.__space.rollout(
-                    self.__space.state,
-                    container,
-                    dt,
-                    n_steps,
-                    control_sampling,
-                    integrator,
+                    self.__space.state, container, dt, n_steps, control_sampling
                 )
             ],
             [

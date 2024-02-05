@@ -4,6 +4,7 @@ import casadi as cs
 from ...backend import CasadiBackend
 from ...arrays import CasadiLikeFactory
 from ...quaternions import state_tangent_map
+from ..integrators import Integrator, ForwardEuler
 
 
 class CasadiStateSpace(StateSpace):

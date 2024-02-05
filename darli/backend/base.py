@@ -263,8 +263,8 @@ class BackendBase(ABC, PinocchioBased):
     @abstractmethod
     def integrate_configuration(
         self,
-        dt: float,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
+        dt: float = 1,
     ) -> ArrayLike:
         ...
