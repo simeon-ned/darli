@@ -295,11 +295,11 @@ class Parametric(ModelBase):
         self,
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
-        tau: ArrayLike | None = None,
+        u: ArrayLike | None = None,
     ) -> ArrayLike:
         return self._backend.math.solve(
             self.inertia(q),
-            -self.bias_force(q, v) + (tau if tau is not None else self.qfrc_u),
+            -self.bias_force(q, v) + (self._qfrc_u if u is None else self.selector @ u),
         ).array
 
     @property

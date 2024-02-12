@@ -305,3 +305,13 @@ class Functional(ModelBase):
         dv: ArrayLike | None = None,
     ):
         raise NotImplementedError
+
+    def update(
+        self,
+        q: ArrayLike,
+        v: ArrayLike,
+        dv: ArrayLike | None = None,
+        u: ArrayLike | None = None,
+    ) -> ArrayLike:
+        # dummy implementation to satisfy base class
+        return
