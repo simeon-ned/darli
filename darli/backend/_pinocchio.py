@@ -223,10 +223,18 @@ class PinocchioBackend(BackendBase):
 
         if dv is not None:
             self._dv = dv
-            self._tau = pin.rnea(self.__model, self.__data, self._q, self._v, self._dv)
+            # update _tau only if it not given
+            if tau is None:
+                self._tau = pin.rnea(
+                    self.__model, self.__data, self._q, self._v, self._dv
+                )
         if tau is not None:
             self._tau = tau
-            self._dv = pin.aba(self.__model, self.__data, self._q, self._v, self._tau)
+            # update _dv only if it not given
+            if dv is None:
+                self._dv = pin.aba(
+                    self.__model, self.__data, self._q, self._v, self._tau
+                )
 
         pin.computeAllTerms(self.__model, self.__data, self._q, self._v)
         pin.jacobianCenterOfMass(self.__model, self.__data, self._q)
