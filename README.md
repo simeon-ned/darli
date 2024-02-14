@@ -1,10 +1,19 @@
-## Differential Articulated Robotics Library
+# DARLi: Differentiable Articulated Robotics Library
 
-The **DARLi** is a Python 3 library that supports both numerical and symbolical computations of open loop articulated robots provided [urdf](https://wiki.ros.org/urdf/XML/model#XML_Robot_Description_Format_.28URDF.29) file.
+The DARLi (Differentiable Articulated Robotics Library) is a wrapper around the CasADi kinematics/dynamics and Pinocchio libraries. Its primary goal is to facilitate the creation of differentiable models for robotic systems, provided a URDF (Unified Robot Description Format) file. **DARLi is not an implementation of mechanics-oriented** algorithms, such as Featherstone's Articulated Body or the Recursive Newton-Euler. Instead, we rely on the efficient implementations provided by [Pinocchio](https://github.com/stack-of-tasks/pinocchio/tree/master) and offer a wrapper that grants easy access to a suite of features that we and our colleagues have found useful in practice of trajectory planning, feedback control, and system identification over poly-articulated robots.
 
-In fact library is just a tiny layer around [Pinocchio](https://github.com/stack-of-tasks/pinocchio/tree/master) functions with input being [CasADi](http://casadi.org/) symbols, this allow for AD capabilities, optimization and etc, as well as conventional numerical computations.
+### Features of DARLi:
 
-The backend is based on slightly [modified version](https://github.com/lvjonok/casadi_kin_dyn) of [casadi_kin_dyn](https://github.com/ADVRHumanoids/casadi_kin_dyn) but will be replaced with [Pinocchio 3](https://github.com/stack-of-tasks/pinocchio/tree/pinocchio3-preview) when it will be released.
+- **Different Backends**: Currently, DARLi supports the numerical Pinocchio backend and its CasADi wrapper, based on a [modified version](https://github.com/lvjonok/casadi_kin_dyn) of [casadi_kin_dyn](https://github.com/ADVRHumanoids/casadi_kin_dyn)  (will be replaced with [Pinocchio 3](https://github.com/stack-of-tasks/pinocchio/tree/pinocchio3-preview) upon its release). We are also planning to support JAX or PyTorch in the near future.
+
+- **Fully Differentiable Model**: DARLi provides a fully differentiable model from just the URDF file. The interface is user-friendly, offering access to different body parts, adding contacts friction cones, input mappings, etc. We also provide pre-built configurations for bipeds, manipulators, humanoids, quadrupeds, and more.
+
+- **Continues and Discrete State Space**: DARLi allows for manifold-aware integration, moving beyond simple Euler methods, and access to differentiable simulations (rollouts) for continuous and discrete state spaces. These features address practical control system concerns such as different control and integration rates. Together wit Auto-differentiation capabilities enable accurate high-order linearizations with respect to state and control inputs and even parameters.
+
+- **Parametric Models**: Most model components and their state spaces can be built dependent on a set of dynamic parameters, accompanied by their linear parametrization (i.e., regressors). In DARLi, combined with the State Space capabilities, this opens the door for non-trivial robustness and sensitivity analysis and greatly facilitates system identification.
+
+- **Functional Wrapper**: DARLi may provide access to various aspects of your model (mentioned above) as standalone CasADi functions. These functions can be called separately (or even code-generated) without the need to re-evaluate the entire model.
+
 
 <!-- ### Description -->
 
@@ -145,3 +154,4 @@ Please refer to dedicated example in `~/examples/01_models_and_robots` to learn 
 The dedicated example  -->
 
 <!-- ### Future Works -->
+<!-- If you have suggestions for additional features that you believe would benefit the library and the community, please let us know. Alternatively, follow the process described in the contributing section. -->

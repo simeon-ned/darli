@@ -1,4 +1,4 @@
-from .base import (
+from ._base import (
     BackendBase,
     Frame,
     BodyInfo,
@@ -7,5 +7,5 @@ from .base import (
     JointType,
     CentroidalDynamics,
 )  # noqa: F401
-from .casadi import CasadiBackend, CasadiCone  # noqa: F401
-from .pinocchio import PinocchioBackend, PinocchioCone  # noqa: F401
+from ._casadi import CasadiBackend, CasadiCone  # noqa: F401
+from ._pinocchio import PinocchioBackend, PinocchioCone  # noqa: F401

@@ -1,4 +1,4 @@
-from darli.modeling import Robot, Functional
+from darli.model import Robot, Functional
 from darli.backend import PinocchioBackend, CasadiBackend
 from robot_descriptions import z1_description
 import numpy as np
