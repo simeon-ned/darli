@@ -5,6 +5,7 @@ from typing import Dict, List
 from ..arrays import ArrayLike, ArrayLikeFactory
 import pinocchio as pin
 import numpy as np
+import numpy.typing as npt
 
 
 class Frame(Enum):
@@ -93,8 +94,51 @@ class ConeBase(ABC):
 
 
 class PinocchioBased:
-    def __init__(self, urdf_path: str) -> None:
-        self._pinmodel: pin.Model = pin.buildModelFromUrdf(urdf_path)
+    def __init__(
+        self,
+        urdf_path: str,
+        root_joint: JointType | None = None,
+        fixed_joints: Dict[str, float | npt.ArrayLike] = None,
+    ) -> None:
+        if fixed_joints is None:
+            fixed_joints = {}
+
+        joint_types = {
+            JointType.FREE_FLYER: pin.JointModelFreeFlyer(),
+            JointType.PLANAR: pin.JointModelPlanar(),
+        }
+
+        # pass root_joint if specified
+        if root_joint is None or root_joint == JointType.OMIT:
+            model: pin.Model = pin.buildModelFromUrdf(urdf_path)
+        else:
+            model: pin.Model = pin.buildModelFromUrdf(
+                urdf_path, joint_types[root_joint]
+            )
+
+        # freeze joints and update coordinate
+        freeze_joint_indices = []
+        zero_q = pin.neutral(model)
+        for joint_name, joint_value in fixed_joints.items():
+            # check that this joint_name exists
+            if not model.existJointName(joint_name):
+                raise ValueError(
+                    f"Joint {joint_name} does not exist in the model. Check the spelling"
+                )
+
+            joint_id = model.getJointId(joint_name)
+            freeze_joint_indices.append(joint_id)
+
+            if not isinstance(joint_value, float):
+                zero_q[:7] = joint_value
+            else:
+                zero_q[joint_id] = joint_value
+
+        self._pinmodel: pin.Model = pin.buildReducedModel(
+            model,
+            freeze_joint_indices,
+            zero_q,
+        )
         self._pindata: pin.Data = self._pinmodel.createData()
 
     @property
@@ -113,9 +157,17 @@ class PinocchioBased:
     def q_min(self) -> int:
         return self._pinmodel.lowerPositionLimit
 
+    @q_min.setter
+    def q_min(self, value: int):
+        self._pinmodel.lowerPositionLimit = value
+
     @property
     def q_max(self) -> int:
         return self._pinmodel.upperPositionLimit
+
+    @q_max.setter
+    def q_max(self, value: int):
+        self._pinmodel.upperPositionLimit = value
 
     @property
     def joint_names(self) -> List[str]:
