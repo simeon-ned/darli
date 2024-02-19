@@ -137,50 +137,10 @@ class PinocchioBackend(BackendBase):
         root_joint: JointType | None = None,
         fixed_joints: Dict[str, float | npt.ArrayLike] = None,
     ) -> None:
-        super().__init__(urdf_path)
-        if fixed_joints is None:
-            fixed_joints = {}
+        super().__init__(urdf_path, root_joint, fixed_joints)
 
-        self.__urdf_path: str = urdf_path
-
-        self.__joint_types = {
-            JointType.FREE_FLYER: pin.JointModelFreeFlyer(),
-            JointType.PLANAR: pin.JointModelPlanar(),
-        }
-
-        # pass root_joint if specified
-        if root_joint is None or root_joint == JointType.OMIT:
-            self.__model: pin.Model = pin.buildModelFromUrdf(self.__urdf_path)
-        else:
-            self.__model: pin.Model = pin.buildModelFromUrdf(
-                self.__urdf_path, self.__joint_types[root_joint]
-            )
-
-        # freeze joints and update coordinate
-        freeze_joint_indices = []
-        zero_q = pin.neutral(self.__model)
-        for joint_name, joint_value in fixed_joints.items():
-            # check that this joint_name exists
-            if not self.__model.existJointName(joint_name):
-                raise ValueError(
-                    f"Joint {joint_name} does not exist in the model. Check the spelling"
-                )
-
-            joint_id = self.__model.getJointId(joint_name)
-            freeze_joint_indices.append(joint_id)
-
-            if not isinstance(joint_value, float):
-                zero_q[:7] = joint_value
-            else:
-                zero_q[joint_id] = joint_value
-
-        self.__model: pin.Model = pin.buildReducedModel(
-            self.__model,
-            freeze_joint_indices,
-            zero_q,
-        )
-
-        self.__data: pin.Data = self.__model.createData()
+        self.__model: pin.Model = self._pinmodel
+        self.__data: pin.Data = self._pindata
 
         self.__nq = self.__model.nq
         self.__nv = self.__model.nv
