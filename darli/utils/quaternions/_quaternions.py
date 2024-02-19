@@ -17,10 +17,8 @@ from ..arrays import ArrayLikeFactory, NumpyLikeFactory
 def expand_map(math: ArrayLikeFactory = NumpyLikeFactory):
     """
     Computes the expand map matrix for 3-dimensional vectors.
-
     Args:
         math: The math backend to use.
-
     Returns:
         The matrix which premultiplication adds a zero row before the input vector.
     """
@@ -33,14 +31,11 @@ def expand_map(math: ArrayLikeFactory = NumpyLikeFactory):
 def hat(vec, math: ArrayLikeFactory = NumpyLikeFactory):
     """
     Computes the hat operator for a given vector.
-
     Args:
         vec: The input vector.
         math: The math backend to use.
-
     Returns:
         The hat operator matrix.
-
     """
     res = math.zeros((3, 3)).array
     res[0, 1] = -vec[2]
@@ -56,14 +51,11 @@ def hat(vec, math: ArrayLikeFactory = NumpyLikeFactory):
 def left_mult(quat, math: ArrayLikeFactory = NumpyLikeFactory):
     """
     Compute the left multiplication matrix of a quaternion.
-
     Parameters:
     quat (array-like): The quaternion to compute the left multiplication matrix for. (Scalar first, vector second)
     math (ArrayLikeFactory, optional): The backend to use for the computation. Defaults to NumpyLikeFactory.
-
     Returns:
     array-like: The left multiplication matrix.
-
     """
     s = quat[0]
     v = quat[1:4]
@@ -80,10 +72,8 @@ def left_mult(quat, math: ArrayLikeFactory = NumpyLikeFactory):
 def tangent_map(quat, math: ArrayLikeFactory = NumpyLikeFactory):
     """
     Generate the matrix for quaternion and angular velocity multiplication.
-
     Parameters:
     q (npt.ArrayLike): The quaternion.
-
     Returns:
     np.ndarray: The matrix for quaternion and angular velocity multiplication.
     """
@@ -94,10 +84,8 @@ def tangent_map(quat, math: ArrayLikeFactory = NumpyLikeFactory):
 def state_tangent_map(state, math: ArrayLikeFactory = NumpyLikeFactory):
     """
     Construct the state transition matrix for proper state space linearization
-
     Args:
         state (npt.ArrayLike): The current state of the system.
-
     Returns:
         np.ndarray: A (nq x nv) state transition matrix.
     """
