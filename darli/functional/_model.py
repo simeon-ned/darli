@@ -28,6 +28,10 @@ class Functional(ModelBase):
         self.__centroidal = None
 
     @property
+    def expression_model(self):
+        return self.__model
+
+    @property
     def q(self) -> ArrayLike:
         return self.__model.q
 

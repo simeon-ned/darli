@@ -31,6 +31,10 @@ class Parametric(ModelBase):
         self.update_selector()
 
     @property
+    def expression_model(self):
+        return self
+
+    @property
     def parameters(self) -> ArrayLike:
         return self._parameters
 
@@ -302,9 +306,9 @@ class Parametric(ModelBase):
             -self.bias_force(q, v) + (self._qfrc_u if u is None else self.selector @ u),
         ).array
 
-    @property
-    def state_space(self):
-        raise NotImplementedError
+    # @property
+    # def state_space(self):
+    #     raise NotImplementedError
 
     @property
     def selector(self):

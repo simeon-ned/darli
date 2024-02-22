@@ -22,12 +22,13 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 packages = [
     "darli",
+    "darli.robots",
     "darli.backend",
-    "darli.arrays",
-    "darli.quaternions",
-    "darli.modeling",
-    "darli.modeling.integrators",
-    "darli.modeling.functional",
-    "darli.modeling.state_space",
-    "darli.modeling.parametric",
+    "darli.model",
+    "darli.integrators",
+    "darli.functional",
+    "darli.state_space",
+    "darli.parametric",
+    "darli.utils.arrays",
+    "darli.utils.quaternions",
 ]

@@ -10,7 +10,7 @@ from ..integrators import Integrator, ForwardEuler
 
 class StateSpace(StateSpaceBase):
     def __init__(self, model: ModelBase) -> None:
-        self.__model: ModelBase = model
+        self.__model: ModelBase = model.expression_model
 
         self.__integrator: Integrator = ForwardEuler(self.__model)
         self.__force_jacobians: Dict[str, ArrayLike] = {}

@@ -174,6 +174,14 @@ class BodyBase(ABC):
 class ModelBase(ABC):
     @property
     @abstractmethod
+    def expression_model(self):
+        """
+        Property should return the underlying model with expressions instead of functions
+        """
+        pass
+
+    @property
+    @abstractmethod
     def q(self) -> ArrayLike:
         pass
 

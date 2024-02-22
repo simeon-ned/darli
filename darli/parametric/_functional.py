@@ -25,6 +25,10 @@ class Functional(ModelBase):
         self.__energy = None
 
     @property
+    def expression_model(self):
+        return self.__robot
+
+    @property
     def parameters(self) -> ArrayLike:
         return self.__robot._parameters
 
