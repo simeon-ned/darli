@@ -5,6 +5,15 @@ from ..backend import BackendBase, CasadiBackend
 from ..utils.arrays import ArrayLike
 from ..model._body import Body
 from ..model._base import Energy, CoM, ModelBase, BodyBase
+from dataclasses import dataclass
+
+
+@dataclass
+class Regressors:
+    torque: ArrayLike
+    kinetic: ArrayLike
+    potential: ArrayLike
+    # TODO: momentum later
 
 
 class Parametric(ModelBase):
@@ -33,6 +42,27 @@ class Parametric(ModelBase):
     @property
     def expression_model(self):
         return self
+
+    def regressors(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> Regressors:
+        return Regressors(
+            torque=self._backend.torque_regressor(
+                q if q is not None else self.q,
+                v if v is not None else self.v,
+                dv if dv is not None else self.dv,
+            ),
+            kinetic=self._backend.kinetic_regressor(
+                q if q is not None else self.q,
+                v if v is not None else self.v,
+            ),
+            potential=self._backend.potential_regressor(
+                q if q is not None else self.q,
+            ),
+        )
 
     @property
     def parameters(self) -> ArrayLike:
