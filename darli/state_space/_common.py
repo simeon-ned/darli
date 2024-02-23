@@ -5,10 +5,10 @@ import casadi as cs
 from typing import Dict
 from ..utils.arrays import ArrayLike
 from ..utils.quaternions import left_mult, expand_map
-from ..integrators import Integrator, ForwardEuler
+from .integrators import Integrator, ForwardEuler
 
 
-class StateSpace(StateSpaceBase):
+class CommonStateSpace(StateSpaceBase):
     def __init__(self, model: ModelBase) -> None:
         self.__model: ModelBase = model.expression_model
 

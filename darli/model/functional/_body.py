@@ -1,7 +1,7 @@
 import casadi as cs
-from ..backend import BackendBase, Frame
-from ..model._base import BodyBase
-from ..model._body import Body, FrameQuantity
+from ...backend import BackendBase, Frame
+from .._base import BodyBase
+from .._body import Body, FrameQuantity
 from ._contact import FunctionalContact
 
 

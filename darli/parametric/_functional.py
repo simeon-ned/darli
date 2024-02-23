@@ -3,11 +3,10 @@ from ..utils.arrays import ArrayLike
 import casadi as cs
 
 from ..model._base import Energy, CoM, ModelBase
-from ._model import Parametric, Regressors
+from ._model import Model, Regressors
 
 from ..model._body import Body
-from ..functional import FunctionalBody, FunctionalStateSpace
-
+from ..model.functional import FunctionalBody
 from typing import List, Dict
 
 
@@ -18,7 +17,7 @@ class Functional(ModelBase):
         ), "Symbolic robot only works with Casadi backend"
         self._backend = backend
 
-        self.__robot = Parametric(backend)
+        self.__robot = Model(backend)
 
         # instances we want to cache
         self.__com = None
@@ -124,9 +123,9 @@ class Functional(ModelBase):
     def body(self, name: str) -> FunctionalBody:
         return FunctionalBody.from_body(self.__robot.body(name))
 
-    @property
-    def state_space(self):
-        return FunctionalStateSpace.from_space(self.__robot.state_space)
+    # @property
+    # def state_space(self):
+    #     return FunctionalStateSpace.from_space(self.__robot.state_space)
 
     @property
     def selector(self):

@@ -1,4 +1,4 @@
-from ._common import StateSpace
+from ._common import CommonStateSpace
 from ..model._base import ModelBase
 import casadi as cs
 from ..backend import CasadiBackend
@@ -6,7 +6,7 @@ from ..utils.arrays import CasadiLikeFactory
 from ..utils.quaternions import state_tangent_map
 
 
-class CasadiStateSpace(StateSpace):
+class CasadiStateSpace(CommonStateSpace):
     def __init__(self, model: ModelBase) -> None:
         super().__init__(model)
 
@@ -18,9 +18,9 @@ class CasadiStateSpace(StateSpace):
         if self.model.nq == self.model.nv:
             return cs.jacobian(self.time_variation(), self.state)
 
-        map = state_tangent_map(self.state, CasadiLikeFactory)
+        state_map = state_tangent_map(self.state, CasadiLikeFactory)
 
-        return map.T @ cs.jacobian(self.time_variation(), self.state) @ map
+        return state_map.T @ cs.jacobian(self.time_variation(), self.state) @ state_map
 
     @property
     def input_jacobian(self):
@@ -28,9 +28,9 @@ class CasadiStateSpace(StateSpace):
         if self.model.nq == self.model.nv:
             return cs.jacobian(self.time_variation(), self.model.qfrc_u)
 
-        map = state_tangent_map(self.state, CasadiLikeFactory)
+        state_map = state_tangent_map(self.state, CasadiLikeFactory)
 
-        return map.T @ cs.jacobian(self.time_variation(), self.model.qfrc_u)
+        return state_map.T @ cs.jacobian(self.time_variation(), self.model.qfrc_u)
 
     def force_jacobian(self, body_name: str) -> cs.Function:
         # early quit if we have already computed the jacobian
@@ -47,11 +47,11 @@ class CasadiStateSpace(StateSpace):
         xdot = self.time_variation()
         body = self.model.body(body_name)
 
-        map = state_tangent_map(self.state, CasadiLikeFactory)
+        state_map = state_tangent_map(self.state, CasadiLikeFactory)
 
         if body_name not in self.force_jacobians:
             self.force_jacobians[body_name] = (
-                map.T @ cs.jacobian(xdot, body.contact.force)
+                state_map.T @ cs.jacobian(xdot, body.contact.force)
                 if self.model.nq != self.model.nv
                 else cs.jacobian(xdot, body.contact.force)
             )

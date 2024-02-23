@@ -1,9 +1,9 @@
-from ._common import StateSpace
+from ._common import CommonStateSpace
 from ..model._base import ModelBase
 import casadi as cs
 
 
-class PinocchioStateSpace(StateSpace):
+class PinocchioStateSpace(CommonStateSpace):
     def __init__(self, model: ModelBase) -> None:
         super().__init__(model)
 

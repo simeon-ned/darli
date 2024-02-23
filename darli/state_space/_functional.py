@@ -1,5 +1,6 @@
-from ..state_space import CasadiStateSpace, StateSpaceBase
-from ..utils.arrays import ArrayLike
+from . import CasadiStateSpace, StateSpaceBase
+
+# from ..utils.arrays import ArrayLike
 from ..model._base import ModelBase
 import casadi as cs
 from ..integrators import Integrator

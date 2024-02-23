@@ -328,11 +328,6 @@ class ModelBase(ABC):
     ) -> ArrayLike:
         pass
 
-    # @property
-    # @abstractmethod
-    # def state_space(self):
-    #     pass
-
     @property
     @abstractmethod
     def selector(self):

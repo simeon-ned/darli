@@ -16,7 +16,7 @@ class Regressors:
     # TODO: momentum later
 
 
-class Parametric(ModelBase):
+class Model(ModelBase):
     def __init__(self, backend: BackendBase):
         self._backend = backend
 

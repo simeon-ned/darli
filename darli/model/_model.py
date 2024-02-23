@@ -27,10 +27,9 @@ class Model(ModelBase):
         self.__bodies: Dict[str, BodyBase] = dict()
         self.update_selector()
 
-        # if isinstance(self.backend, CasadiBackend):
-        #     self.__state_space = CasadiStateSpace(self)
-        # else:
-        #     self.__state_space = PinocchioStateSpace(self)
+    @property
+    def expression_model(self):
+        return self
 
     @property
     def q(self) -> ArrayLike:
@@ -284,10 +283,6 @@ class Model(ModelBase):
             )
             - self.contact_qforce
         )
-
-    # @property
-    # def state_space(self):
-    #     return self.__state_space
 
     @property
     def selector(self):
