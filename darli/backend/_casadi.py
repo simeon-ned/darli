@@ -404,8 +404,6 @@ class CasadiBackend(BackendBase):
             container[3:7] = so3_next.xyzw
             container[7:] = joints_next
 
-            print(container)
-
             return container
         else:
             return (q if q is not None else self._q) + (
