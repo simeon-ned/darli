@@ -1,8 +1,8 @@
 """Module for base class of integrators."""
 
 from abc import ABC, abstractmethod
-from ..model._base import ModelBase
-from ..utils.arrays import ArrayLike
+from ...model._base import ModelBase
+from ...utils.arrays import ArrayLike
 import casadi as cs
 
 

@@ -2,9 +2,9 @@ from darli.backend import BackendBase, CasadiBackend, CentroidalDynamics
 from darli.utils.arrays import ArrayLike
 import casadi as cs
 
-from ..model._base import Energy, CoM
-from ..model._model import Model, ModelBase
-from ..model._body import Body
+from .._base import Energy, CoM
+from .._model import Model, ModelBase
+from .._body import Body
 
 # from ...model.model import Model, ModelBase
 # from .state_space import FunctionalStateSpace
@@ -26,6 +26,10 @@ class Functional(ModelBase):
         self.__com = None
         self.__energy = None
         self.__centroidal = None
+
+    @property
+    def expression_model(self):
+        return self.__model
 
     @property
     def q(self) -> ArrayLike:

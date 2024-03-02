@@ -3,11 +3,10 @@ from ..utils.arrays import ArrayLike
 import casadi as cs
 
 from ..model._base import Energy, CoM, ModelBase
-from ._model import Parametric
+from ._model import Model, Regressors
 
 from ..model._body import Body
-from ..functional import FunctionalBody, FunctionalStateSpace
-
+from ..model.functional import FunctionalBody
 from typing import List, Dict
 
 
@@ -18,11 +17,48 @@ class Functional(ModelBase):
         ), "Symbolic robot only works with Casadi backend"
         self._backend = backend
 
-        self.__robot = Parametric(backend)
+        self.__robot = Model(backend)
 
         # instances we want to cache
         self.__com = None
         self.__energy = None
+
+    @property
+    def expression_model(self):
+        return self.__robot
+
+    @property
+    def regressors(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> Regressors:
+        regrs = self.__robot.regressors(q, v, dv)
+
+        return Regressors(
+            torque=cs.Function(
+                "torque_regressor",
+                [self.q, self.v, self.dv],
+                [regrs.torque],
+                ["q", "v", "dv"],
+                ["torque_regressor"],
+            ),
+            kinetic=cs.Function(
+                "kinetic_regressor",
+                [self.q, self.v],
+                [regrs.kinetic],
+                ["q", "v"],
+                ["kinetic_regressor"],
+            ),
+            potential=cs.Function(
+                "potential_regressor",
+                [self.q],
+                [regrs.potential],
+                ["q"],
+                ["potential_regressor"],
+            ),
+        )
 
     @property
     def parameters(self) -> ArrayLike:
@@ -87,9 +123,9 @@ class Functional(ModelBase):
     def body(self, name: str) -> FunctionalBody:
         return FunctionalBody.from_body(self.__robot.body(name))
 
-    @property
-    def state_space(self):
-        return FunctionalStateSpace.from_space(self.__robot.state_space)
+    # @property
+    # def state_space(self):
+    #     return FunctionalStateSpace.from_space(self.__robot.state_space)
 
     @property
     def selector(self):

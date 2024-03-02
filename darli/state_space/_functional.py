@@ -1,8 +1,9 @@
-from ..state_space import CasadiStateSpace, StateSpaceBase
-from ..utils.arrays import ArrayLike
+from . import CasadiStateSpace, StateSpaceBase
+
+# from ..utils.arrays import ArrayLike
 from ..model._base import ModelBase
 import casadi as cs
-from ..integrators import Integrator
+from .integrators import Integrator
 from typing import Type
 
 
@@ -15,7 +16,15 @@ class FunctionalStateSpace(StateSpaceBase):
         if space is not None:
             self.__space = space
         else:
-            self.__space = CasadiStateSpace(model)
+            self.__space = CasadiStateSpace(model.expression_model)
+
+        # parameters should be set from the model is parametric, otherwise it should be empty
+        self.__parameters = []
+        self.__parameters_name = []
+
+        if hasattr(model, "parameters"):
+            self.__parameters = [model.parameters]
+            self.__parameters_name = ["theta"]
 
     def set_integrator(self, integrator_cls: Type[Integrator]):
         """
@@ -58,6 +67,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 self.__space.model.v,
                 self.__space.model.qfrc_u,
                 *self.__space.model.contact_forces,
+                *self.__parameters,
             ],
             [
                 self.__space.derivative(
@@ -71,6 +81,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 "v",
                 "tau",
                 *self.__space.model.contact_names,
+                *self.__parameters_name,
             ],
             ["derivative"],
         )
@@ -84,6 +95,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 self.__space.model.v,
                 self.__space.model.qfrc_u,
                 *self.__space.model.contact_forces,
+                *self.__parameters,
             ],
             [
                 self.__space.time_variation(
@@ -97,6 +109,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 "v",
                 "tau",
                 *self.__space.model.contact_names,
+                *self.__parameters_name,
             ],
             ["time_variation"],
         )
@@ -124,6 +137,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 self.__space.state,
                 container,
                 *self.__space.model.contact_forces,
+                *self.__parameters,
             ],
             [
                 self.__space.rollout(
@@ -134,6 +148,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 "state",
                 "controls",
                 *self.__space.model.contact_names,
+                *self.__parameters_name,
             ],
             ["next_state"],
         )
@@ -147,6 +162,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 self.__space.model.v,
                 self.__space.model.qfrc_u,
                 *self.__space.model.contact_forces,
+                *self.__parameters,
             ],
             [self.__space.state_jacobian],
             [
@@ -154,6 +170,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 "v",
                 "tau",
                 *self.__space.model.contact_names,
+                *self.__parameters_name,
             ],
             ["state_jacobian"],
         )
@@ -167,6 +184,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 self.__space.model.v,
                 self.__space.model.qfrc_u,
                 *self.__space.model.contact_forces,
+                *self.__parameters,
             ],
             [self.__space.input_jacobian],
             [
@@ -174,6 +192,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 "v",
                 "tau",
                 *self.__space.model.contact_names,
+                *self.__parameters_name,
             ],
             ["input_jacobian"],
         )
@@ -186,6 +205,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 self.__space.model.v,
                 self.__space.model.qfrc_u,
                 *self.__space.model.contact_forces,
+                *self.__parameters,
             ],
             [self.__space.force_jacobian(body_name)],
             [
@@ -193,6 +213,7 @@ class FunctionalStateSpace(StateSpaceBase):
                 "v",
                 "tau",
                 *self.__space.model.contact_names,
+                *self.__parameters_name,
             ],
             ["input_jacobian"],
         )

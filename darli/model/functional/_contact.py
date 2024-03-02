@@ -1,6 +1,6 @@
-from ..model._base import ContactBase
-from ..backend import BackendBase, Frame
-from ..model._contact import Contact
+from .._base import ContactBase
+from ...backend import BackendBase, Frame
+from .._contact import Contact
 import casadi as cs
 
 

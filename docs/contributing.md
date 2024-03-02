@@ -1,13 +1,15 @@
 - Documentation and Info:
   - [ ] The cheat sheet for all necessary modules
+  - [ ] The overall presentation and jupyter nootebook with all features
 - Modeling Backends:
   - [x] Refactor the model class, add folder with backends
-  - [x] Implement or use some ready implementation `rnea, crba, regressor, forward_kinematics` with JAX/PyTorch 
   - [x] Pure pinocchio backend and 'all-in-one' update  
+  - [ ] Implement or use some ready implementation `rnea, crba, regressor, forward_kinematics` with JAX/PyTorch 
 - Model:
   - [ ] Friction and Joint inertias for active joints
   - [ ] Flexibility in Active Joints
   - [ ] Sparsity Patterns 
+  - [ ] Add regular force, contact should inherite from force
 - State Space:
   - [ ] State class that define how state is organized and mapped to `q, v`
   - [x] Integrators on manifolds
@@ -32,12 +34,21 @@
   - [ ] Prepare docs and proper examples for each aspect of the library
   - [ ] Effort/velocity limits from urdf
 
+Tutorials:
+- [ ] Introduction
+- [ ] Models and Robots
+- [ ] State Space
+- [ ] Parametric Models 
+Each tutorial should have presentation. 
+
+
+
 Possible Examples:
 Model and Backends:
   - [ ] Joint/Task Inverse Dynamics
   - [ ] Optimization based Inverse Kinematics
   - [ ] Feedback Linearization with Flexible Joints 
-  - [ ] Static Poses fo Biped  
+  - [ ] Static Poses for Biped  
   - [ ] Trajectory Optimization
 State Space: 
   - [ ] Linear Analysis 

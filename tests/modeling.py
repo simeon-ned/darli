@@ -1,7 +1,7 @@
 import unittest
 
 from darli.model import Robot
-from darli.model.functional import Functional
+from darli.model._functional import Functional
 from darli.backend import PinocchioBackend, CasadiBackend
 from robot_descriptions import z1_description
 import numpy as np

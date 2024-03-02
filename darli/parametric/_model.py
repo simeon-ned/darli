@@ -5,9 +5,18 @@ from ..backend import BackendBase, CasadiBackend
 from ..utils.arrays import ArrayLike
 from ..model._body import Body
 from ..model._base import Energy, CoM, ModelBase, BodyBase
+from dataclasses import dataclass
 
 
-class Parametric(ModelBase):
+@dataclass
+class Regressors:
+    torque: ArrayLike
+    kinetic: ArrayLike
+    potential: ArrayLike
+    # TODO: momentum later
+
+
+class Model(ModelBase):
     def __init__(self, backend: BackendBase):
         self._backend = backend
 
@@ -29,6 +38,31 @@ class Parametric(ModelBase):
 
         self.__bodies: Dict[str, BodyBase] = dict()
         self.update_selector()
+
+    @property
+    def expression_model(self):
+        return self
+
+    def regressors(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+        dv: ArrayLike | None = None,
+    ) -> Regressors:
+        return Regressors(
+            torque=self._backend.torque_regressor(
+                q if q is not None else self.q,
+                v if v is not None else self.v,
+                dv if dv is not None else self.dv,
+            ),
+            kinetic=self._backend.kinetic_regressor(
+                q if q is not None else self.q,
+                v if v is not None else self.v,
+            ),
+            potential=self._backend.potential_regressor(
+                q if q is not None else self.q,
+            ),
+        )
 
     @property
     def parameters(self) -> ArrayLike:
@@ -302,9 +336,9 @@ class Parametric(ModelBase):
             -self.bias_force(q, v) + (self._qfrc_u if u is None else self.selector @ u),
         ).array
 
-    @property
-    def state_space(self):
-        raise NotImplementedError
+    # @property
+    # def state_space(self):
+    #     raise NotImplementedError
 
     @property
     def selector(self):
