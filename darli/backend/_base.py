@@ -103,6 +103,8 @@ class PinocchioBased:
         if fixed_joints is None:
             fixed_joints = {}
 
+        self.__urdf_path = urdf_path
+
         joint_types = {
             JointType.FREE_FLYER: pin.JointModelFreeFlyer(),
             JointType.PLANAR: pin.JointModelPlanar(),
@@ -140,6 +142,11 @@ class PinocchioBased:
             zero_q,
         )
         self._pindata: pin.Data = self._pinmodel.createData()
+
+    @property
+    def urdf_path(self) -> str:
+        """Returns the path to the URDF file used to build the model."""
+        return self.__urdf_path
 
     @property
     def nq(self) -> int:
