@@ -5,9 +5,11 @@ from ..utils.arrays import CasadiLikeFactory, ArrayLike
 import casadi as cs
 from typing import Dict
 import numpy.typing as npt
-
 import liecasadi as lie
 
+
+# TODO: Parse joints tyoe from description, and create
+# approprate Lie group for them
 
 class CasadiCone(ConeBase):
     def __init__(self, force, mu, contact_type="point", X=None, Y=None):
@@ -385,15 +387,24 @@ class CasadiBackend(BackendBase):
             v = v if v is not None else self._v
 
             # we have to use lie geometry
-            # integrate se3 and joint space separately
+            # to integrate se3 and joint space separately
+            # TODO: 
+            # replace with SE3
+            # what if someone will fix base position?
             pos = q[:3]
             xyzw = q[3:7]
             so3 = lie.SO3(xyzw)
             joints = q[7:]
-
+            
             pos_tang = v[:3] * dt
             so3_tang = lie.SO3Tangent(v[3:6] * dt)
             joint_tang = v[6:] * dt
+            
+            # se3 = lie.SE3(pos=pos, xyzw=xyzw)
+            # se3_tang = lie.SE3Tangent(v[:6] * dt)
+            # container[:3] = se3_next.xyzw
+            # container[3:7] = se3_next.xyzw
+            # se3_next = se3 + so3_tang
 
             pos_next = pos + pos_tang
             so3_next = so3 + so3_tang

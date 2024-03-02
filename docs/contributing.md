@@ -3,8 +3,8 @@
   - [ ] The overall presentation and jupyter nootebook with all features
 - Modeling Backends:
   - [x] Refactor the model class, add folder with backends
-  - [x] Implement or use some ready implementation `rnea, crba, regressor, forward_kinematics` with JAX/PyTorch 
   - [x] Pure pinocchio backend and 'all-in-one' update  
+  - [ ] Implement or use some ready implementation `rnea, crba, regressor, forward_kinematics` with JAX/PyTorch 
 - Model:
   - [ ] Friction and Joint inertias for active joints
   - [ ] Flexibility in Active Joints
