@@ -6,6 +6,8 @@ import casadi as cs
 from typing import Dict
 import numpy.typing as npt
 
+import liecasadi as lie
+
 
 class CasadiCone(ConeBase):
     def __init__(self, force, mu, contact_type="point", X=None, Y=None):
@@ -378,10 +380,43 @@ class CasadiBackend(BackendBase):
         v: ArrayLike | None = None,
         dt: float | cs.SX = 1.0,
     ) -> ArrayLike:
-        return self.__kindyn.integrate()(
-            q=q if q is not None else self._q,
-            v=v * dt if v is not None else self._v * dt,
-        )["qnext"]
+        if self.nq != self.nv:
+            q = q if q is not None else self._q
+            v = v if v is not None else self._v
+
+            # we have to use lie geometry
+            # integrate se3 and joint space separately
+            pos = q[:3]
+            xyzw = q[3:7]
+            so3 = lie.SO3(xyzw)
+            joints = q[7:]
+
+            pos_tang = v[:3] * dt
+            so3_tang = lie.SO3Tangent(v[3:6] * dt)
+            joint_tang = v[6:] * dt
+
+            pos_next = pos + pos_tang
+            so3_next = so3 + so3_tang
+            joints_next = joints + joint_tang
+
+            container = cs.SX.zeros(self.nq)
+            container[:3] = pos_next
+            container[3:7] = so3_next.xyzw
+            container[7:] = joints_next
+
+            print(container)
+
+            return container
+        else:
+            return (q if q is not None else self._q) + (
+                v if v is not None else self._v
+            ) * dt
+
+        # do not ever try to use this in optimization
+        # return self.__kindyn.integrate()(
+        #     q=q if q is not None else self._q,
+        #     v=v * dt if v is not None else self._v * dt,
+        # )["qnext"]
 
     def centroidal_dynamics(
         self,

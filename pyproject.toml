@@ -3,7 +3,7 @@ name = "darli"
 description = "The DARLi is a Python 3 library that supports both numerical and symbolical computations of open loop articulated robots provided urdf file."
 version = "0.3.2"
 authors = [{ name = "Lev Kozlov" }, { name = "Simeon Nedelchev" }]
-dependencies = ["cmeel_casadi_kin_dyn>=1.6.11"]
+dependencies = ["cmeel_casadi_kin_dyn>=1.6.11", "liecasadi"]
 readme = "README.md"
 requires-python = ">=3.9"
 
