@@ -1,6 +1,6 @@
 from ..model import Model
-from ..functional import Functional
-from ..parametric import Parametric
+from ..model.functional import Functional
+from ..parametric import Model as Parametric
 from ..backend import CasadiBackend, PinocchioBackend, Frame, JointType
 from typing import Dict
 
