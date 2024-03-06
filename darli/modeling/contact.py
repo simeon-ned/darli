@@ -62,7 +62,7 @@ class Contact(ContactBase):
     def update(self, jacobian: ArrayLike | None = None):
         # if jacobian is given directly, just use it
         if jacobian is not None:
-            self.__jacobian = jacobian[:, : self.dim]
+            self.__jacobian = jacobian.T[:, : self.dim]
         else:
             self.__jacobian = (
                 self.__backend.update_body(self.__name)
