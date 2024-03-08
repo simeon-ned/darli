@@ -1,4 +1,14 @@
 import numpy as np
+from ...backend.liecasadi import SO3, SO3Tangent
+
+
+# StateSpace.state
+# state() = 
+# groups = [Vector(3), SO(3), Vector(nj)] 
+# 
+# 
+# nx = 
+
 
 class State:
     def __init__(self, nx, ndx, groups):
@@ -8,6 +18,7 @@ class State:
         self.data = np.zeros(nx)
         self.tangent_data = np.zeros(ndx)
         self.time = 0.0
+        self.tangent = None
 
     def log(self):
         # Implement the logarithmic map from the state to the tangent space
@@ -33,6 +44,7 @@ class State:
         # Return the configuration space of the state
         pass
 
+
     def state_mapping(self, other_state):
         # Map another state to the same configuration space as the current state
         pass
@@ -42,7 +54,7 @@ class State:
         pass
 
     def random(self):
-        # Generate a random state
+        # Generate a random state respecting the group geometry
         pass
 
     def neutral(self):

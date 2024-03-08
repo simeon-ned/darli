@@ -22,10 +22,6 @@ class InertialParameters:
         result.matrix = self.matrix - other.matrix
         return result
 
-    def add(self, other):
-        self.vector += other.vector
-        self.matrix += other.matrix
-
     def exp(self):
         # Implement exponential map
         pass
@@ -38,11 +34,7 @@ class InertialParameters:
         # Implement tangent space computation
         pass
 
-    def jacobians(self):
-        # Implement Jacobian computation
-        pass
-
-    def reiman(self):
+    def reimann_jacobian(self):
         # Implement Riemannian operations
         pass
 
@@ -50,7 +42,7 @@ class InertialParameters:
         # Implement projection operation
         pass
 
-    def euclidian(self):
+    def euclidian_jacobian(self):
         # Implement Euclidean operations
         pass
 
