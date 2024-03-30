@@ -412,10 +412,11 @@ class CasadiBackend(BackendBase):
             joints_next = joints + joint_tang
 
             container = cs.SX.zeros(self.nq)
-            container[:3] = pos_next
-            container[3:7] = so3_next.xyzw
-            container[7:] = joints_next
-
+            configuration_next = cs.vertcat(pos_next, so3_next.xyzw, joints_next)
+            # container[:3] = pos_next
+            # container[3:7] = so3_next.xyzw
+            # container[7:] = joints_next
+            container = configuration_next
             return container
         else:
             return (q if q is not None else self._q) + (
