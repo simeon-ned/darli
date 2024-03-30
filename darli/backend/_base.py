@@ -46,6 +46,7 @@ class JointType(Enum):
 class BodyInfo:
     position: ArrayLike
     rotation: ArrayLike
+    quaternion: ArrayLike
     jacobian: Dict[Frame, ArrayLike]
     djacobian: Dict[Frame, ArrayLike]
     lin_vel: Dict[Frame, ArrayLike]
