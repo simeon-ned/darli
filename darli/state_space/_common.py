@@ -5,7 +5,7 @@ import casadi as cs
 from typing import Dict
 from ..utils.arrays import ArrayLike
 from ..utils.quaternions import left_mult, expand_map
-from ._integrators import Integrator, ForwardEuler
+from .integrators import Integrator, ForwardEuler
 
 
 class CommonStateSpace(StateSpaceBase):

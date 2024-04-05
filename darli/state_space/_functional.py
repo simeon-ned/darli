@@ -3,7 +3,7 @@ from . import CasadiStateSpace, StateSpaceBase
 # from ..utils.arrays import ArrayLike
 from ..model._base import ModelBase
 import casadi as cs
-from ._integrators import Integrator
+from .integrators import Integrator
 from typing import Type
 
 
