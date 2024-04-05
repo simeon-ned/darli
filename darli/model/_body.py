@@ -44,7 +44,9 @@ class Body(BodyBase):
 
     @property
     def quaternion(self):
-        raise NotImplementedError
+        if self.__info is None:
+            raise ValueError("Quaternion is not calculated, run `update()` first")
+        return self.__info.quaternion
 
     @property
     def jacobian(self) -> FrameQuantity:

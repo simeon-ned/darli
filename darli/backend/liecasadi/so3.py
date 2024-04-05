@@ -13,6 +13,10 @@ from .quaternion import Quaternion
 from .hints import Angle, Matrix, TangentVector, Vector
 
 
+# TODO: Add distance between two SO3/Quaternions
+# SO3 Manifold should be defined on Rotation matrices!
+# No conversion to and back from SO3/Quaternions
+
 @dataclasses.dataclass
 class SO3:
     xyzw: Vector
@@ -42,10 +46,21 @@ class SO3:
     def from_matrix(matrix: Matrix) -> "SO3":
         m = matrix
         assert m.shape == (3, 3)
+
         qw = 0.5 * cs.sqrt(m[0, 0] + m[1, 1] + m[2, 2] + 1)
-        qx = 0.5 * cs.sign(m[2, 1] - m[1, 2]) * cs.sqrt(m[0, 0] - m[1, 1] - m[2, 2] + 1)
-        qy = 0.5 * cs.sign(m[0, 2] - m[2, 0]) * cs.sqrt(m[1, 1] - m[2, 2] - m[0, 0] + 1)
-        qz = 0.5 * cs.sign(m[1, 0] - m[0, 1]) * cs.sqrt(m[2, 2] - m[0, 0] - m[1, 1] + 1)
+
+        qx = cs.if_else(m[2, 1] - m[1, 2] >= 0,
+                        0.5 * cs.sqrt(m[0, 0] - m[1, 1] - m[2, 2] + 1),
+                        -0.5 * cs.sqrt(m[0, 0] - m[1, 1] - m[2, 2] + 1))
+
+        qy = cs.if_else(m[0, 2] - m[2, 0] >= 0,
+                        0.5 * cs.sqrt(m[1, 1] - m[2, 2] - m[0, 0] + 1),
+                        -0.5 * cs.sqrt(m[1, 1] - m[2, 2] - m[0, 0] + 1))
+
+        qz = cs.if_else(m[1, 0] - m[0, 1] >= 0,
+                        0.5 * cs.sqrt(m[2, 2] - m[0, 0] - m[1, 1] + 1),
+                        -0.5 * cs.sqrt(m[2, 2] - m[0, 0] - m[1, 1] + 1))
+
         return SO3(xyzw=cs.vertcat(qx, qy, qz, qw))
 
     def as_quat(self) -> Quaternion:
@@ -97,13 +112,20 @@ class SO3:
         return SO3(xyzw=(other.quat * self.xyzw).coeffs())
 
     def log(self) -> "SO3Tangent":
-        # Θ = 2 * v * np.arctan2(||v||, w) / ||v||
-        norm = cs.norm_2(self.quat.coeffs()[:3] + cs.np.finfo(np.float64).eps)
-        theta = (
-            2 * self.quat.coeffs()[:3] * cs.atan2(norm, self.quat.coeffs()[3]) / norm
-        )
+        norm = cs.norm_2(self.quat.coeffs()[:3])# + cs.np.finfo(np.float64).eps)
+        theta = cs.if_else(norm > 0+ cs.np.finfo(np.float64).eps, 
+                           2 * self.quat.coeffs()[:3] * cs.atan2(norm, self.quat.coeffs()[3]) / norm,
+                           cs.MX.zeros(3,1))
         return SO3Tangent(vec=theta)
-
+    
+    def distance(self, other: "SO3") -> cs.MX:
+        R1 = self.as_matrix()
+        R2 = other.as_matrix()
+        trace = cs.trace(cs.mtimes(R1.T, R2))
+        cos = (trace - 1) / 2
+        dist = cs.acos(cos)
+        return dist**2
+    
     def __sub__(self, other) -> "SO3Tangent":
         if type(self) is type(other):
             return (other.inverse() * self).log()
