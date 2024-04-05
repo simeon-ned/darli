@@ -262,7 +262,7 @@ class Model(ModelBase):
         return self._backend.aba(
             q if q is not None else self._q,
             v if v is not None else self._v,
-            tau=(self._qfrc_u if u is None else self.selector @ u)
+            tau=(self.selector @ self._qfrc_u if u is None else self.selector @ u)
             + self.contact_qforce,
         )
 

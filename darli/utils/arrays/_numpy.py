@@ -108,7 +108,7 @@ class NumpyLikeFactory(ArrayLikeFactory):
         Returns:
             NumpyLike: zero matrix of dimension x
         """
-        return NumpyLike(np.zeros(x))
+        return NumpyLike(np.zeros(*x))
 
     @staticmethod
     def eye(x: int) -> "NumpyLike":
