@@ -1,5 +1,6 @@
 import casadi_kin_dyn.casadi_kin_dyn as ckd
 
+from .liecasadi import SO3
 from ._base import BackendBase, ConeBase, Frame, BodyInfo, JointType, CentroidalDynamics
 from ..utils.arrays import CasadiLikeFactory, ArrayLike
 import casadi as cs
@@ -330,10 +331,10 @@ class CasadiBackend(BackendBase):
     def update_body(self, body: str, body_urdf_name: str = None) -> BodyInfo:
         if body_urdf_name is None:
             body_urdf_name = body
-
         return BodyInfo(
             position=self.__kindyn.fk(body_urdf_name)(q=self._q)["ee_pos"],
             rotation=self.__kindyn.fk(body_urdf_name)(q=self._q)["ee_rot"],
+            quaternion=SO3.from_matrix(self.__kindyn.fk(body_urdf_name)(q=self._q)["ee_rot"]).xyzw,
             jacobian={
                 Frame.from_str(frame): self.__kindyn.jacobian(
                     body_urdf_name, self.__frame_mapping[frame]
@@ -412,10 +413,11 @@ class CasadiBackend(BackendBase):
             joints_next = joints + joint_tang
 
             container = cs.SX.zeros(self.nq)
-            container[:3] = pos_next
-            container[3:7] = so3_next.xyzw
-            container[7:] = joints_next
-
+            configuration_next = cs.vertcat(pos_next, so3_next.xyzw, joints_next)
+            # container[:3] = pos_next
+            # container[3:7] = so3_next.xyzw
+            # container[7:] = joints_next
+            container = configuration_next
             return container
         else:
             return (q if q is not None else self._q) + (

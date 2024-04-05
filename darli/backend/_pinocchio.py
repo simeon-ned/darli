@@ -437,6 +437,7 @@ class PinocchioBackend(BackendBase):
         result = BodyInfo(
             position=self.__data.oMf[frame_idx].translation,
             rotation=self.__data.oMf[frame_idx].rotation,
+            quaternion=pin.se3ToXYZQUAT(self.__data.oMf[frame_idx])[3:],
             jacobian=jacobian,
             djacobian=djacobian,
             lin_vel=lin_vel,
