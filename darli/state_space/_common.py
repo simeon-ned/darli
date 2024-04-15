@@ -81,7 +81,7 @@ class CommonStateSpace(StateSpaceBase):
             omega = self.__model.v[3:6]
 
             # normalize the quaternion to prevent drift over time
-            quat = quat / self.__model.backend.math.norm_2(quat).array
+            # quat = quat / self.__model.backend.math.norm_2(quat).array
 
             # from scalar last to scalar first
             quat_changed = quat
