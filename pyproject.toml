@@ -25,6 +25,7 @@ packages = [
     "darli.robots",
     "darli.backend",
     "darli.backend.liecasadi",
+    "darli.backend.liecasadi.hints",
     "darli.model",
     "darli.model.functional",
     "darli.state_space",
