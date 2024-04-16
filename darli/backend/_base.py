@@ -150,6 +150,11 @@ class PinocchioBased:
         return self.__urdf_path
 
     @property
+    def total_mass(self) -> float:
+        """Returns the total mass of the robot."""
+        return self._pindata.mass[0]
+
+    @property
     def nq(self) -> int:
         return self._pinmodel.nq
 
@@ -326,5 +331,4 @@ class BackendBase(ABC, PinocchioBased):
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
         dt: float = 1,
-    ) -> ArrayLike:
-        ...
+    ) -> ArrayLike: ...
