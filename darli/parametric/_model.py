@@ -13,7 +13,7 @@ class Regressors:
     torque: ArrayLike
     kinetic: ArrayLike
     potential: ArrayLike
-    # TODO: momentum later
+    momentum: tuple[ArrayLike, ArrayLike]
 
 
 class Model(ModelBase):
@@ -61,6 +61,10 @@ class Model(ModelBase):
             ),
             potential=self._backend.potential_regressor(
                 q if q is not None else self.q,
+            ),
+            momentum=self._backend.momentum_regressor(
+                q if q is not None else self.q,
+                v if v is not None else self.v,
             ),
         )
 
@@ -276,7 +280,17 @@ class Model(ModelBase):
     def momentum(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        pass
+        Y_momentum = self._backend.torque_regressor(
+            q if q is not None else self._q,
+            self._backend.math.zeros(self._backend.nv).array,
+            v if v is not None else self._v,
+        )
+        Y_static = self._backend.torque_regressor(
+            q if q is not None else self._q,
+            self._backend.math.zeros(self._backend.nv).array,
+            self._backend.math.zeros(self._backend.nv).array,
+        )
+        return (Y_momentum - Y_static) @ self._parameters
 
     def lagrangian(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None

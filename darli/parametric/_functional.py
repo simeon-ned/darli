@@ -58,6 +58,13 @@ class Functional(ModelBase):
                 ["q"],
                 ["potential_regressor"],
             ),
+            momentum=cs.Function(
+                "momentum_regressor",
+                [self.q, self.v],
+                [*regrs.momentum],
+                ["q", "v"],
+                ["momentum_regressor", "partial_lagrangian_configuration"],
+            ),
         )
 
     @property
