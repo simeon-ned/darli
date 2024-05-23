@@ -194,14 +194,6 @@ class CasadiBackend(BackendBase):
         self.__frame_types = self.__frame_mapping.keys()
 
     @property
-    def kindyn(self) -> ckd.CasadiKinDyn:
-        return self.__kindyn
-
-    @property
-    def local(self) -> ckd.CasadiKinDyn:
-        return self.__frame_mapping["local"]
-
-    @property
     def nq(self) -> int:
         return self.__nq
 
@@ -417,7 +409,10 @@ class CasadiBackend(BackendBase):
             # compute the velocity derivatives with respect to configuration
             dvb_dv = self.__kindyn.jointVelocityDerivatives(
                 body_urdf_name, self.__frame_mapping["local"]
-            )(q=self._q, v=self._v,)["v_partial_dv"]
+            )(
+                q=self._q,
+                v=self._v,
+            )["v_partial_dv"]
 
             phik_dv_joint = dvb_dv.T @ phik_dv
             dphi_h[:, joint_idx * 10 : (joint_idx + 1) * 10] = phik_dv_joint
