@@ -307,6 +307,14 @@ class BackendBase(ABC, PinocchioBased):
         pass
 
     @abstractmethod
+    def momentum_regressor(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+    ):
+        pass
+
+    @abstractmethod
     def centroidal_dynamics(
         self,
         q: ArrayLike | None = None,
@@ -331,4 +339,5 @@ class BackendBase(ABC, PinocchioBased):
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
         dt: float = 1,
-    ) -> ArrayLike: ...
+    ) -> ArrayLike:
+        ...

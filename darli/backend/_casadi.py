@@ -328,13 +328,118 @@ class CasadiBackend(BackendBase):
             q=q if q is not None else self._q,
         )["potential_regressor"]
 
+    def _spatial_kinetic_energy_jacobian(self):
+        # Define CasADi symbolic variables
+        v = cs.SX.sym("v", 3)
+        w = cs.SX.sym("w", 3)
+
+        # Define the Jacobian matrix as a CasADi SX matrix
+        jacobian = cs.SX.zeros(10, 6)
+
+        jacobian[0, :] = cs.vertcat(v[0], v[1], v[2], 0, 0, 0)
+        jacobian[1, :] = cs.vertcat(0, w[2], -w[1], 0, -v[2], v[1])
+        jacobian[2, :] = cs.vertcat(-w[2], 0, w[0], v[2], 0, -v[0])
+        jacobian[3, :] = cs.vertcat(w[1], -w[0], 0, -v[1], v[0], 0)
+        jacobian[4, :] = cs.vertcat(0, 0, 0, w[0], 0, 0)
+        jacobian[5, :] = cs.vertcat(0, 0, 0, w[1], w[0], 0)
+        jacobian[6, :] = cs.vertcat(0, 0, 0, 0, w[1], 0)
+        jacobian[7, :] = cs.vertcat(0, 0, 0, w[2], 0, w[0])
+        jacobian[8, :] = cs.vertcat(0, 0, 0, 0, w[2], w[1])
+        jacobian[9, :] = cs.vertcat(0, 0, 0, 0, 0, w[2])
+
+        # Transpose the Jacobian matrix
+        jacobian_transposed = jacobian.T
+
+        # Define the CasADi function
+        spatial_kinetic_energy_jacobian = cs.Function(
+            "spatial_kinetic_energy_jacobian",
+            [v, w],
+            [jacobian_transposed],
+        )
+
+        return spatial_kinetic_energy_jacobian
+
+    def momentum_regressor(
+        self,
+        q_inp: ArrayLike | None = None,
+        v_inp: ArrayLike | None = None,
+    ):
+        # store functions
+        spatial_kinetic_energy_jacobian = self._spatial_kinetic_energy_jacobian()
+        torque_reg_fn = self.__kindyn.jointTorqueRegressor()
+
+        # static regressor Y(q, 0, 0)
+        static = torque_reg_fn(
+            q=self._q,
+            v=cs.SX.zeros(self.nv),
+            a=cs.SX.zeros(self.nv),
+        )["regressor"]
+
+        # phi_p = M(q) @ v = (Y(q, 0, v) - Y(q, 0, 0)) @ v
+        phi_p = (
+            torque_reg_fn(
+                q=self._q,
+                v=cs.SX.zeros(self.nv),
+                a=self._v,
+            )["regressor"]
+            - static
+        )
+
+        # compute the partial derivative of lagrangian w.r.t. configuration
+        dphi_h = cs.SX.zeros(*static.shape)
+
+        joint_idx = 0
+        for idx, joint_name in enumerate(self.joint_names):
+            if self.__kindyn.joint_nq(joint_name) == 0:
+                continue
+            # find the joint index
+            body_urdf_name = self.__kindyn.parentLink(joint_name)
+
+            # find spatial velocity
+            lin_vel = self.__kindyn.frameVelocity(
+                body_urdf_name, self.__frame_mapping["local"]
+            )(q=self._q, qdot=self._v)["ee_vel_linear"]
+
+            ang_vel = self.__kindyn.frameVelocity(
+                body_urdf_name, self.__frame_mapping["local"]
+            )(q=self._q, qdot=self._v)["ee_vel_angular"]
+
+            # compute the spatial kinetic energy jacobian
+            phik_dv = spatial_kinetic_energy_jacobian(lin_vel, ang_vel)
+            # compute the velocity derivatives with respect to configuration
+            dvb_dv = self.__kindyn.jointVelocityDerivatives(
+                body_urdf_name, self.__frame_mapping["local"]
+            )(
+                q=self._q,
+                v=self._v,
+            )["v_partial_dv"]
+
+            phik_dv_joint = dvb_dv.T @ phik_dv
+            dphi_h[:, joint_idx * 10 : (joint_idx + 1) * 10] = phik_dv_joint
+            joint_idx += 1
+
+        dphi_h -= static
+
+        return cs.Function(
+            "momentum_regressor",
+            [self._q, self._v],
+            [phi_p, dphi_h],
+            ["q", "v"],
+            ["phi_p", "dphi_h"],
+        )(
+            q_inp if q_inp is not None else self._q,
+            v_inp if v_inp is not None else self._v,
+        )
+
     def update_body(self, body: str, body_urdf_name: str = None) -> BodyInfo:
         if body_urdf_name is None:
             body_urdf_name = body
         return BodyInfo(
             position=self.__kindyn.fk(body_urdf_name)(q=self._q)["ee_pos"],
             rotation=self.__kindyn.fk(body_urdf_name)(q=self._q)["ee_rot"],
-            quaternion=SO3.from_matrix(self.__kindyn.fk(body_urdf_name)(q=self._q)["ee_rot"]).xyzw,
+            quaternion=SO3.from_matrix(
+                self.__kindyn.fk(body_urdf_name)(q=self._q)["ee_rot"]
+            ).xyzw,
             jacobian={
                 Frame.from_str(frame): self.__kindyn.jacobian(
                     body_urdf_name, self.__frame_mapping[frame]

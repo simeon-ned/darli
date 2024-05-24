@@ -206,7 +206,7 @@ class Model(ModelBase):
     def momentum(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None
     ) -> ArrayLike:
-        raise NotImplementedError("Implement me pls")  # FIXME: implement me
+        return self.inertia(q) @ (v if v is not None else self._v)
 
     def lagrangian(
         self, q: ArrayLike | None = None, v: ArrayLike | None = None

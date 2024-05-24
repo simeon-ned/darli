@@ -200,6 +200,9 @@ class PinocchioBackend(BackendBase):
 
         pin.computeAllTerms(self.__model, self.__data, self._q, self._v)
         pin.jacobianCenterOfMass(self.__model, self.__data, self._q)
+        pin.computeForwardKinematicsDerivatives(
+            self.__model, self.__data, self._q, self._v, self._dv
+        )
         self.__dJcom_dt = pin.getCenterOfMassVelocityDerivatives(
             self.__model, self.__data
         )
@@ -399,6 +402,91 @@ class PinocchioBackend(BackendBase):
             regressor[0, i * 10 + 3] = res[2]
 
         return regressor
+
+    def _spatial_kinetic_energy_jacobian(self, v, w):
+        # spatial kinetic energy regressor jacobian with respect to velocity and angular velocityf
+        jacobian = np.array(
+            [
+                [v[0], v[1], v[2], 0, 0, 0],
+                [0, w[2], -w[1], 0, -v[2], v[1]],
+                [-w[2], 0, w[0], v[2], 0, -v[0]],
+                [w[1], -w[0], 0, -v[1], v[0], 0],
+                [0, 0, 0, w[0], 0, 0],
+                [0, 0, 0, w[1], w[0], 0],
+                [0, 0, 0, 0, w[1], 0],
+                [0, 0, 0, w[2], 0, w[0]],
+                [0, 0, 0, 0, w[2], w[1]],
+                [0, 0, 0, 0, 0, w[2]],
+            ]
+        )
+        return jacobian.T
+
+    def momentum_regressor(
+        self,
+        q: ArrayLike | None = None,
+        v: ArrayLike | None = None,
+    ) -> tuple[ArrayLike, ArrayLike]:
+        """momentum_regressor computes parametric momentum and
+            partial derivative of lagrangian with respect to configuration
+
+        Args:
+            q (ArrayLike | None, optional): _description_. Defaults to None.
+            v (ArrayLike | None, optional): _description_. Defaults to None.
+
+        Returns:
+            tuple[ArrayLike, ArrayLike]: momentum regressor and partial derivative of lagrangian regressor
+        """
+        if q is not None or v is not None:
+            self._q = q if q is not None else self._q
+            self._v = v if v is not None else self._v
+            pin.computeAllTerms(self.__model, self.__data, q, v)
+
+        # static regressor Y(q, 0, 0)
+        pin.computeJointTorqueRegressor(
+            self.__model,
+            self.__data,
+            self._q,
+            np.zeros(self.nv),
+            np.zeros(self.nv),
+        )
+        static = self.__data.jointTorqueRegressor.copy()
+
+        # phi_p = M(q) v = (Y(q, 0, v) - Y(q, 0, 0)) @ theta
+        pin.computeJointTorqueRegressor(
+            self.__model,
+            self.__data,
+            self._q,
+            np.zeros(self.nv),
+            self._v,
+        )
+        phi_p = self.__data.jointTorqueRegressor.copy() - static.copy()
+
+        # compute the derivative
+        dphi_h = np.zeros_like(phi_p)
+        for i in range(self.nbodies):
+            spatial_vel = pin.getVelocity(
+                self._pinmodel,
+                self._pindata,
+                i + 1,
+                pin.LOCAL,
+            )
+            velocity_derivatives = pin.getJointVelocityDerivatives(
+                self._pinmodel,
+                self._pindata,
+                i + 1,
+                pin.LOCAL,
+            )
+
+            dvb_dv = velocity_derivatives[1].copy()
+            phik_dv = self._spatial_kinetic_energy_jacobian(
+                spatial_vel.linear.copy(), spatial_vel.angular.copy()
+            )
+            phik_dv_joint = dvb_dv.T @ phik_dv
+            dphi_h[:, i * 10 : (i + 1) * 10] = phik_dv_joint.copy()
+
+        dphi_h -= static
+
+        return phi_p, dphi_h
 
     def update_body(self, body: str, body_urdf_name: str = None) -> BodyInfo:
         if body_urdf_name is None:
