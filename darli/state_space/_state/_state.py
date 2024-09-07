@@ -3,11 +3,11 @@ from ...backend.liecasadi import SO3, SO3Tangent
 
 
 # StateSpace.state
-# state() = 
-# groups = [Vector(3), SO(3), Vector(nj)] 
-# 
-# 
-# nx = 
+# state() =
+# groups = [Vector(3), SO(3), Vector(nj)]
+#
+#
+# nx =
 
 
 class State:
@@ -43,7 +43,6 @@ class State:
     def configuration_space(self):
         # Return the configuration space of the state
         pass
-
 
     def state_mapping(self, other_state):
         # Map another state to the same configuration space as the current state

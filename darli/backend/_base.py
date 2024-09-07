@@ -1,87 +1,34 @@
 from abc import ABC, abstractmethod
-from enum import Enum
-from dataclasses import dataclass
-from typing import Dict, List
+from typing import Callable, Dict, List
 from ..utils.arrays import ArrayLike, ArrayLikeFactory
+from ._structs import JointType, BodyInfo, CentroidalDynamics
 import pinocchio as pin
 import numpy as np
 import numpy.typing as npt
+import os
 
 
-class Frame(Enum):
-    LOCAL = 1
-    WORLD = 2
-    LOCAL_WORLD_ALIGNED = 3
+def parse_description_type(description_path: str) -> Callable:
+    """Returns the appropriate Pinocchio model builder based on file extension.
 
-    @classmethod
-    def from_str(cls, string: str) -> "Frame":
-        if string == "local":
-            return cls.LOCAL
-        elif string == "world":
-            return cls.WORLD
-        elif string == "world_aligned":
-            return cls.LOCAL_WORLD_ALIGNED
-        else:
-            raise ValueError(f"Unknown frame type: {string}")
+    Args:
+        description_path (str): Path to the description file.
 
+    Returns:
+        Callable: Pinocchio model builder function.
 
-class JointType(Enum):
-    OMIT = 1  # empty = none = no joint = skip
-    FREE_FLYER = 2
-    PLANAR = 3
-
-    @classmethod
-    def from_str(cls, string: str) -> "JointType":
-        if string == "omit":
-            return cls.OMIT
-        elif string == "free_flyer":
-            return cls.FREE_FLYER
-        elif string == "planar":
-            return cls.PLANAR
-        else:
-            raise ValueError(f"Unknown joint type: {string}")
-
-
-@dataclass
-class BodyInfo:
-    position: ArrayLike
-    rotation: ArrayLike
-    quaternion: ArrayLike
-    jacobian: Dict[Frame, ArrayLike]
-    djacobian: Dict[Frame, ArrayLike]
-    lin_vel: Dict[Frame, ArrayLike]
-    ang_vel: Dict[Frame, ArrayLike]
-    lin_acc: Dict[Frame, ArrayLike]
-    ang_acc: Dict[Frame, ArrayLike]
-
-
-@dataclass
-class CentroidalDynamics:
+    Raises:
+        ValueError: If the file extension is not recognized.
     """
-    linear: linear momentum
-    angular: angular momentum
-    linear_dt: linear momentum derivative
-    angular_dt: angular momentum derivative
-    matrix: centroidal momentum matrix
-    matrix_dt: same as linear momentum derivative w.r.t. q
-    dynamics_jacobian_q: momentum derivative w.r.t. q
-    dynamics_jacobian_v: momentum derivative w.r.t. v
-    dynamics_jacobian_vdot: momentum derivative w.r.t. dv
+    _, ext = os.path.splitext(description_path)
+    ext = ext.lower()
 
-    Under the hood uses pinocchio methods:
-        - computeCentroidalMomentumTimeVariation
-        - computeCentroidalDynamicsDerivatives
-    """
-
-    linear: ArrayLike
-    angular: ArrayLike
-    linear_dt: ArrayLike
-    angular_dt: ArrayLike
-    matrix: ArrayLike
-    matrix_dt: ArrayLike
-    dynamics_jacobian_q: ArrayLike
-    dynamics_jacobian_v: ArrayLike
-    dynamics_jacobian_dv: ArrayLike
+    if ext == ".urdf":
+        return pin.buildModelFromUrdf
+    elif ext == ".xml":
+        return pin.buildModelFromMJCF
+    else:
+        raise ValueError(f"Unrecognized description extension: {ext}")
 
 
 class ConeBase(ABC):
@@ -97,27 +44,25 @@ class ConeBase(ABC):
 class PinocchioBased:
     def __init__(
         self,
-        urdf_path: str,
+        description_path: str,
         root_joint: JointType | None = None,
         fixed_joints: Dict[str, float | npt.ArrayLike] = None,
     ) -> None:
         if fixed_joints is None:
             fixed_joints = {}
 
-        self.__urdf_path = urdf_path
+        self.__description_path = description_path
 
         joint_types = {
             JointType.FREE_FLYER: pin.JointModelFreeFlyer(),
             JointType.PLANAR: pin.JointModelPlanar(),
         }
-
+        builder = parse_description_type(description_path)
         # pass root_joint if specified
         if root_joint is None or root_joint == JointType.OMIT:
-            model: pin.Model = pin.buildModelFromUrdf(urdf_path)
+            model: pin.Model = builder(description_path)
         else:
-            model: pin.Model = pin.buildModelFromUrdf(
-                urdf_path, joint_types[root_joint]
-            )
+            model: pin.Model = builder(description_path, joint_types[root_joint])
 
         # freeze joints and update coordinate
         freeze_joint_indices = []
@@ -145,9 +90,9 @@ class PinocchioBased:
         self._pindata: pin.Data = self._pinmodel.createData()
 
     @property
-    def urdf_path(self) -> str:
+    def description_path(self) -> str:
         """Returns the path to the URDF file used to build the model."""
-        return self.__urdf_path
+        return self.__description_path
 
     @property
     def total_mass(self) -> float:
@@ -324,7 +269,7 @@ class BackendBase(ABC, PinocchioBased):
         pass
 
     @abstractmethod
-    def update_body(self, body: str, body_urdf_name: str = None) -> BodyInfo:
+    def update_body(self, body: str, body_description_name: str = None) -> BodyInfo:
         pass
 
     @abstractmethod
@@ -339,5 +284,4 @@ class BackendBase(ABC, PinocchioBased):
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
         dt: float = 1,
-    ) -> ArrayLike:
-        ...
+    ) -> ArrayLike: ...

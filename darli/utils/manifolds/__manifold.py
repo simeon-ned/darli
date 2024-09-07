@@ -3,7 +3,7 @@
 # https://github.com/pymanopt/pymanopt/blob/master/src/pymanopt/manifolds/manifold.py
 
 
-# Manifold Class 
+# Manifold Class
 # ATTRIBUTES:
 # nx
 # ndx
@@ -16,25 +16,25 @@
 # __neg__
 # __rsub__
 # __truediv__
-# 
+#
 
 
 # Methods:
 # log
 # exp
 # logmap
-# expmap 
+# expmap
 # action
 # dist
 # gradient
 # hessian
-# tangent 
-# neutral 
-# random 
+# tangent
+# neutral
+# random
 # inverse
 
 
-# Tangent Class 
+# Tangent Class
 
-# Product Class 
+# Product Class
 

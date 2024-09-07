@@ -334,12 +334,10 @@ class ModelBase(ABC):
         pass
 
     @abstractmethod
-    def add_body(self, bodies_names: List[str] | Dict[str, str]):
-        ...
+    def add_body(self, bodies_names: List[str] | Dict[str, str]): ...
 
     @abstractmethod
-    def body(self, name: str) -> BodyBase:
-        ...
+    def body(self, name: str) -> BodyBase: ...
 
     @abstractmethod
     def centroidal_dynamics(
@@ -347,8 +345,7 @@ class ModelBase(ABC):
         q: ArrayLike | None = None,
         v: ArrayLike | None = None,
         dv: ArrayLike | None = None,
-    ) -> CentroidalDynamics:
-        ...
+    ) -> CentroidalDynamics: ...
 
     @abstractmethod
     def update(
@@ -357,5 +354,4 @@ class ModelBase(ABC):
         v: ArrayLike,
         dv: ArrayLike | None = None,
         u: ArrayLike | None = None,
-    ) -> ArrayLike:
-        ...
+    ) -> ArrayLike: ...

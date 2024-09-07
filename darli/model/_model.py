@@ -7,8 +7,6 @@ import numpy as np
 from ._base import Energy, CoM, ModelBase, BodyBase
 from ._body import Body
 
-# from .state_space import CasadiStateSpace, PinocchioStateSpace
-
 
 class Model(ModelBase):
     def __init__(self, backend: BackendBase):

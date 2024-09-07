@@ -131,8 +131,8 @@ class CommonStateSpace(StateSpaceBase):
         if control_sampling is None:
             control_sampling = dt
 
-        assert controls.shape[1] == int(
-            n_steps * dt / control_sampling
+        assert (
+            controls.shape[1] == int(n_steps * dt / control_sampling)
         ), f"We expect controls to have shape[1] = {int(n_steps * dt / control_sampling)}, but got {controls.shape[1]}"
 
         time = 0

@@ -9,10 +9,10 @@ class Body(BodyBase):
     def __init__(self, name, backend: BackendBase, contact_type=None):
         if isinstance(name, dict):
             self.name = list(name.keys())[0]
-            self.urdf_name = name[self.name]
+            self.description_name = name[self.name]
         else:
             self.name = name
-            self.urdf_name = name
+            self.description_name = name
 
         self.__backend: BackendBase = backend
 
@@ -151,7 +151,7 @@ class Body(BodyBase):
         return self.__info.ang_acc[frame]
 
     def update(self):
-        self.__info = self.__backend.update_body(self.name, self.urdf_name)
+        self.__info = self.__backend.update_body(self.name, self.description_name)
 
         # update contact
         if self.__contact is not None:
@@ -167,7 +167,7 @@ class Body(BodyBase):
     ):
         self.__contact_type = contact_type
         self.__contact = constructor(
-            self.urdf_name,
+            self.description_name,
             self.__backend,
             frame=frame,
             type=contact_type,

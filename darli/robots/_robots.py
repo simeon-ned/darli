@@ -97,9 +97,10 @@ def quadruped(
     foots: Dict = None,
     arm: Dict = None,
     floating_selector=True,
-    friction = 1.0,
+    friction=1.0,
     reference: Frame = Frame.LOCAL_WORLD_ALIGNED,
-    root_joint: JointType = None) -> Model | Parametric | Functional:
+    root_joint: JointType = None,
+) -> Model | Parametric | Functional:
     bodies_names = {}
 
     if torso is not None:

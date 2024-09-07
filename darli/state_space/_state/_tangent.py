@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Tangent:
     def __init__(self, ndx):
         self.ndx = ndx

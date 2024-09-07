@@ -161,4 +161,6 @@ cython_debug/
 #.idea/
 *TODO
 .vscode*
-*old
+*old# pixi environments
+.pixi
+*.egg-info

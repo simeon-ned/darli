@@ -1,4 +1,4 @@
-name: base
+name: darli_dev
 channels:
   - conda-forge
 dependencies:
@@ -6,6 +6,7 @@ dependencies:
   - pip
   - ipykernel
   - libgfortran5
+  - pinocchio>=3.0.0
   - pip:
       - darli
       - robot_descriptions

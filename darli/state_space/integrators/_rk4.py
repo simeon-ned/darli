@@ -1,4 +1,5 @@
 """Module for RK4 integrator"""
+
 from ._base import Integrator, ModelBase, ArrayLike, cs
 
 

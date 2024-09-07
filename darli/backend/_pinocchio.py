@@ -1,6 +1,7 @@
 import pinocchio as pin
 
-from ._base import BackendBase, BodyInfo, ConeBase, Frame, JointType, CentroidalDynamics
+from ._base import BackendBase, ConeBase
+from ._structs import Frame, BodyInfo, CentroidalDynamics, JointType
 from ..utils.arrays import ArrayLike, NumpyLikeFactory
 import numpy as np
 import numpy.typing as npt
@@ -133,11 +134,11 @@ class PinocchioBackend(BackendBase):
 
     def __init__(
         self,
-        urdf_path: str,
+        description_path: str,
         root_joint: JointType | None = None,
         fixed_joints: Dict[str, float | npt.ArrayLike] = None,
     ) -> None:
-        super().__init__(urdf_path, root_joint, fixed_joints)
+        super().__init__(description_path, root_joint, fixed_joints)
 
         # backend base already contains model and data in pinocchio format
         # as we have created everything in super().__init__(), we can use it here
@@ -488,9 +489,13 @@ class PinocchioBackend(BackendBase):
 
         return phi_p, dphi_h
 
-    def update_body(self, body: str, body_urdf_name: str = None) -> BodyInfo:
+    def update_body(self, body: str, body_urdf_name: str | None = None) -> BodyInfo:
         if body_urdf_name is None:
             body_urdf_name = body
+
+        # check that body_urdf_name is in the model
+        if not self.__model.existFrame(body_urdf_name):
+            raise KeyError(f"Link {body_urdf_name} not found in the model")
 
         # if we have cached information about body, clean it
         if body_urdf_name in self.__body_info_cache:
@@ -504,28 +509,31 @@ class PinocchioBackend(BackendBase):
         ang_vel = {}
         lin_acc = {}
         ang_acc = {}
+
+        pin.framesForwardKinematics(self.__model, self.__data, self._q)
+
         for frame_str, fstr in self.__frame_mapping.items():
             frame = Frame.from_str(frame_str)
-
             jacobian[frame] = pin.getFrameJacobian(
                 self.__model, self.__data, frame_idx, fstr
             )
             djacobian[frame] = pin.getFrameJacobianTimeVariation(
                 self.__model, self.__data, frame_idx, fstr
             )
-            lin_vel[frame] = jacobian[frame][:3] @ self._v
-            ang_vel[frame] = jacobian[frame][3:] @ self._v
+            # TODO: Redo this with standart pin functions
+            lin_vel[frame] = jacobian[frame][:3, :] @ self._v
+            ang_vel[frame] = jacobian[frame][3:, :] @ self._v
             lin_acc[frame] = (
-                jacobian[frame][:3] @ self._dv + djacobian[frame][:3] @ self._v
+                jacobian[frame][:3, :] @ self._dv + djacobian[frame][:3, :] @ self._v
             )
             ang_acc[frame] = (
-                jacobian[frame][3:] @ self._dv + djacobian[frame][3:] @ self._v
+                jacobian[frame][3:, :] @ self._dv + djacobian[frame][3:, :] @ self._v
             )
 
         result = BodyInfo(
             position=self.__data.oMf[frame_idx].translation,
             rotation=self.__data.oMf[frame_idx].rotation,
-            quaternion=pin.se3ToXYZQUAT(self.__data.oMf[frame_idx])[3:],
+            quaternion=pin.SE3ToXYZQUAT(self.__data.oMf[frame_idx])[3:],
             jacobian=jacobian,
             djacobian=djacobian,
             lin_vel=lin_vel,

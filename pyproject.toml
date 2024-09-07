@@ -1,9 +1,9 @@
 [project]
 name = "darli"
-description = "The DARLi is a Python 3 library that supports both numerical and symbolical computations of open loop articulated robots provided urdf file."
-version = "0.4.3"
+description = "The DARLi is a Python 3 library that supports numerical and symbolical computations of open loop articulated robots provided urdf file."
+version = "0.5.0"
 authors = [{ name = "Lev Kozlov" }, { name = "Simeon Nedelchev" }]
-dependencies = ["cmeel_casadi_kin_dyn>=1.6.14"]
+dependencies = ["pytest>=8.3.2,<9", "robot-descriptions>=1.12.0,<2", "mujoco>=3.2.2,<4", "pytest-cov>=5.0.0,<6"]
 readme = "README.md"
 requires-python = ">=3.9"
 
@@ -34,3 +34,19 @@ packages = [
     "darli.utils.arrays",
     "darli.utils.quaternions",
 ]
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.pypi-dependencies]
+darli = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+pinocchio = ">=3.1.0,<4"

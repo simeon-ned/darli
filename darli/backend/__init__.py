@@ -1,11 +1,12 @@
 from ._base import (
     BackendBase,
-    Frame,
-    BodyInfo,
+    # Frame,
+    # BodyInfo,
     ConeBase,
     PinocchioBased,
-    JointType,
-    CentroidalDynamics,
+    # JointType,
+    # CentroidalDynamics,
 )  # noqa: F401
 from ._casadi import CasadiBackend, CasadiCone  # noqa: F401
 from ._pinocchio import PinocchioBackend, PinocchioCone  # noqa: F401
+from ._structs import Frame, BodyInfo, CentroidalDynamics, JointType

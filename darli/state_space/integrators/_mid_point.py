@@ -1,4 +1,5 @@
 """Module for forward euler integrator"""
+
 from ._base import Integrator, ModelBase, ArrayLike, cs
 
 
